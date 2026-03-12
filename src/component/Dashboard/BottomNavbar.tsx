@@ -1,6 +1,9 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import Icon from '@react-native-vector-icons/material-design-icons';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../../navigation/RootNavigator';
 
 interface NavItemProps {
   label: string;
@@ -13,11 +16,12 @@ const NavItem: React.FC<NavItemProps> = ({ label, icon, isActive, onPress }) => 
   <TouchableOpacity 
     style={[styles.navItem, isActive && styles.activeNavItem]} 
     onPress={onPress}
+    activeOpacity={0.8}
   >
     <Icon 
       name={icon as any} 
       size={24} 
-      color={isActive ? '#0F172A' : '#64748B'} 
+      color={isActive ? '#000000' : '#6B7280'} 
     />
     <Text style={[styles.navLabel, isActive && styles.activeNavLabel]}>
       {label}
@@ -25,14 +29,48 @@ const NavItem: React.FC<NavItemProps> = ({ label, icon, isActive, onPress }) => 
   </TouchableOpacity>
 );
 
-const BottomNavbar = () => {
+interface BottomNavbarProps {
+  activeTab?: keyof RootStackParamList;
+}
+
+const BottomNavbar: React.FC<BottomNavbarProps> = ({ activeTab }) => {
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+
+  const navigateTo = (screen: keyof RootStackParamList) => {
+    if (activeTab === screen) return;
+    navigation.reset({
+      index: 0,
+      routes: [{ name: screen as any }],
+    });
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.navbar}>
-        <NavItem label="Dashboard" icon="grid-view" isActive={true} />
-        <NavItem label="Inventory" icon="home" />
-        <NavItem label="Sales" icon="shopping-cart" />
-        <NavItem label="Invoice" icon="description" />
+        <NavItem 
+          label="Dashboard" 
+          icon="view-dashboard" 
+          isActive={activeTab === 'Dashboard'} 
+          onPress={() => navigateTo('Dashboard')}
+        />
+        <NavItem 
+          label="Inventory" 
+          icon="warehouse" 
+          isActive={activeTab === 'Inventory'} 
+          onPress={() => navigateTo('Inventory')}
+        />
+        <NavItem 
+          label="Sales" 
+          icon="cart" 
+          isActive={activeTab === 'Sales'} 
+          onPress={() => navigateTo('Sales')}
+        />
+        <NavItem 
+          label="Invoice" 
+          icon="file-document" 
+          isActive={activeTab === 'Invoice'} 
+          onPress={() => navigateTo('Invoice')}
+        />
       </View>
     </View>
   );
@@ -41,14 +79,14 @@ const BottomNavbar = () => {
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    bottom: 30, // Positioned at the bottom with some margin
+    bottom: 30,
     left: 20,
     right: 20,
     alignItems: 'center',
   },
   navbar: {
     flexDirection: 'row',
-    backgroundColor: '#E5E7EB', // Solid light grey matching the background or slightly different
+    backgroundColor: '#E5E7EB',
     borderRadius: 50,
     paddingHorizontal: 8,
     paddingVertical: 8,
@@ -62,14 +100,14 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   navItem: {
-    flex: 1, // Equal width for items
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 12,
     borderRadius: 40,
   },
   activeNavItem: {
-    backgroundColor: '#FFFFFF', // White pill for active item
+    backgroundColor: '#FFFFFF',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
