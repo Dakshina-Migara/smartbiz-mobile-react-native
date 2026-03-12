@@ -3,12 +3,17 @@ import { Platform } from 'react-native';
 
 const BASE_URL = Platform.OS === 'android' ? 'http://10.0.2.2:8080/api/v1' : 'http://localhost:8080/api/v1';
 
-const api = axios.create({
+export const api = axios.create({
   baseURL: BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
 });
+
+export interface LoginRequest {
+  email: string;
+  password?: string;
+}
 
 export interface TransactionData {
   transactionId?: number;
@@ -52,6 +57,26 @@ export interface MobileSaleRequest {
   paymentMethod: string;
   status: string;
 }
+
+export const setAuthToken = (token: string | null) => {
+  if (token) {
+    api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+  } else {
+    delete api.defaults.headers.common['Authorization'];
+  }
+};
+
+export const authService = {
+  login: async (data: LoginRequest) => {
+    try {
+      const response = await api.post('/auth/login', data);
+      return response.data;
+    } catch (error) {
+      console.error('API Login error:', error);
+      throw error;
+    }
+  },
+};
 
 export const mobileService = {
   getDashboard: async (businessId: number) => {
