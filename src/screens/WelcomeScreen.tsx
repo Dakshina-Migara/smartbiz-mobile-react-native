@@ -1,54 +1,49 @@
-import {
-  View,
-  Text,
-  Image,
-  StyleSheet,
-  Dimensions,
-  TouchableOpacity,
+import React from 'react';
+import { 
+  View, 
+  Text, 
+  StyleSheet, 
+  SafeAreaView, 
+  TouchableOpacity, 
+  Dimensions 
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import BrandButton from '../component/BrandButton';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../navigation/RootNavigator';
 
 const { width } = Dimensions.get('window');
 
 const WelcomeScreen = () => {
-  const insets = useSafeAreaInsets();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.content}>
-        <View style={styles.imageContainer}>
-          <Image
-            source={require('../../assets/images/welcome_hero.png')}
-            style={styles.image}
-            resizeMode="contain"
-          />
+        <View style={styles.logoContainer}>
+            {/* Placeholder for actual logo */}
+          <View style={styles.logoCircle}>
+              <Text style={styles.logoText}>SB</Text>
+          </View>
+          <Text style={styles.brandName}>SmartBiz</Text>
         </View>
-        
+
         <View style={styles.textContainer}>
-          <Text style={styles.title}>Welcome to SmartBiz</Text>
+          <Text style={styles.title}>Welcome to Modern Business Management</Text>
           <Text style={styles.subtitle}>
-            Empower your business with smart digital solutions. Manage, grow, and scale with ease.
+            Manage your inventory, track sales, and generate invoices with ease.
           </Text>
         </View>
 
         <View style={styles.buttonContainer}>
-          <BrandButton onPress={() => console.log('Get Started pressed')}>
-            Get Started
-          </BrandButton>
-          
           <TouchableOpacity 
-            style={styles.loginContainer}
-            activeOpacity={0.7}
-            onPress={() => console.log('Login pressed')}
+            style={styles.primaryButton}
+            onPress={() => navigation.navigate('Dashboard')}
           >
-            <Text style={styles.loginText}>
-              Already have an account? <Text style={styles.loginLink}>Login</Text>
-            </Text>
+            <Text style={styles.primaryButtonText}>Get Started</Text>
           </TouchableOpacity>
         </View>
       </View>
-    </View>
+    </SafeAreaView>
   );
 };
 
@@ -59,56 +54,72 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    alignItems: 'center',
+    padding: 30,
     justifyContent: 'space-between',
-    paddingHorizontal: 30,
-    paddingVertical: 40,
-  },
-  imageContainer: {
-    flex: 1.2,
-    justifyContent: 'center',
     alignItems: 'center',
-    width: '100%',
   },
-  image: {
-    width: width * 0.85,
-    height: width * 0.85,
+  logoContainer: {
+    alignItems: 'center',
+    marginTop: 60,
+  },
+  logoCircle: {
+      width: 80,
+      height: 80,
+      borderRadius: 40,
+      backgroundColor: '#000000',
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginBottom: 16,
+  },
+  logoText: {
+      color: '#FFFFFF',
+      fontSize: 24,
+      fontWeight: '900',
+  },
+  brandName: {
+    fontSize: 24,
+    fontWeight: '900',
+    color: '#111827',
   },
   textContainer: {
-    flex: 1,
     alignItems: 'center',
-    justifyContent: 'center',
+    width: '100%',
   },
   title: {
     fontSize: 32,
-    fontWeight: '800',
-    color: '#0F172A', // Slate 900
+    fontWeight: '900',
+    color: '#111827',
     textAlign: 'center',
     marginBottom: 16,
-    letterSpacing: -0.5,
+    lineHeight: 40,
   },
   subtitle: {
     fontSize: 16,
-    color: '#64748B', // Slate 500
+    color: '#6B7280',
     textAlign: 'center',
     lineHeight: 24,
-    paddingHorizontal: 10,
+    paddingHorizontal: 20,
   },
   buttonContainer: {
     width: '100%',
-    marginTop: 20,
+    marginBottom: 40,
   },
-  loginContainer: {
-    marginTop: 24,
+  primaryButton: {
+    backgroundColor: '#000000',
+    paddingVertical: 18,
+    borderRadius: 16,
     alignItems: 'center',
+    width: '100%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 8,
   },
-  loginText: {
-    fontSize: 15,
-    color: '#64748B', // Slate 500
-  },
-  loginLink: {
-    color: '#6366F1',
-    fontWeight: '700',
+  primaryButtonText: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: '800',
   },
 });
 
