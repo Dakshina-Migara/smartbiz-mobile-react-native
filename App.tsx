@@ -13,16 +13,20 @@ import { PaperProvider } from 'react-native-paper';
 import { NavigationContainer } from '@react-navigation/native';
 import RootNavigator from './src/navigation/RootNavigator';
 
+import { SalesProvider } from './src/context/SalesContext';
+
 function App() {
   const isDarkMode = useColorScheme() === 'dark';
 
   return (
     <SafeAreaProvider>
       <PaperProvider>
-        <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-        <NavigationContainer>
-          <RootNavigator />
-        </NavigationContainer>
+        <SalesProvider>
+          <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
+          <NavigationContainer>
+            <RootNavigator />
+          </NavigationContainer>
+        </SalesProvider>
       </PaperProvider>
     </SafeAreaProvider>
   );
