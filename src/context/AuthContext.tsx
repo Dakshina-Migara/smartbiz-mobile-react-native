@@ -34,6 +34,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const response = await authService.login(data);
       const { token, ...userData } = response;
       
+      setAuthToken(token); // Set header immediately before state update
       setToken(token);
       setUser(userData);
       
