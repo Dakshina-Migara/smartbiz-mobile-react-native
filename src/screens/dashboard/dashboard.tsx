@@ -5,7 +5,8 @@ import {
   StyleSheet, 
   ScrollView, 
   SafeAreaView, 
-  StatusBar 
+  StatusBar,
+  RefreshControl 
 } from 'react-native';
 import { FAB } from 'react-native-paper';
 import StatCard from '../../component/Dashboard/StatCard';
@@ -21,7 +22,7 @@ import { useSales } from '../../context/SalesContext';
 const DashboardScreen = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [showNewSaleModal, setShowNewSaleModal] = useState(false);
-  const { totalSales, totalRevenue, totalProducts, lowStockItems } = useSales();
+  const { totalSales, totalRevenue, totalProducts, lowStockItems, loading, refreshData } = useSales();
 
   return (
     <SafeAreaView style={styles.container}>
@@ -31,6 +32,9 @@ const DashboardScreen = () => {
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={loading} onRefresh={refreshData} />
+        }
       >
         <View style={styles.header}>
           <Text style={styles.title}>Dashboard</Text>
