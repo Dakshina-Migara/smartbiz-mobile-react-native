@@ -12,10 +12,16 @@ import StatCard from '../../component/Dashboard/StatCard';
 import ActionCard from '../../component/Dashboard/ActionCard';
 import BottomNavbar from '../../component/Dashboard/BottomNavbar';
 
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../../navigation/RootNavigator';
+
 const DashboardScreen = () => {
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#F1F5F9" />
+      <StatusBar barStyle="dark-content" backgroundColor="#E5E7EB" />
       
       <ScrollView 
         style={styles.scrollView}
@@ -40,13 +46,13 @@ const DashboardScreen = () => {
           <ActionCard 
             title="New Sale" 
             subtitle="Create a new sale entry" 
-            onPress={() => console.log('New Sale')}
+            onPress={() => navigation.navigate('Sales')}
           />
           
           <ActionCard 
             title="Manage Inventory" 
             subtitle="Add or Update Product" 
-            onPress={() => console.log('Manage Inventory')}
+            onPress={() => navigation.navigate('Inventory')}
           />
         </View>
 
@@ -61,7 +67,7 @@ const DashboardScreen = () => {
         onPress={() => console.log('FAB pressed')}
       />
 
-      <BottomNavbar />
+      <BottomNavbar activeTab="Dashboard" />
     </SafeAreaView>
   );
 };
