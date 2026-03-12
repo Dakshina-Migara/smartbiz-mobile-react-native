@@ -1,16 +1,9 @@
 import React from 'react';
-import { View, Text, StyleSheet, SafeAreaView, FlatList, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, ScrollView } from 'react-native';
 import BottomNavbar from '../../component/Dashboard/BottomNavbar';
-import Icon from '@react-native-vector-icons/material-design-icons';
+import { useSales, Sale } from '../../context/SalesContext';
 
-const RECENT_SALES = [
-  { id: '1', customer: 'Walking Customer', amount: '$45.00', status: 'Completed', time: '10:30 AM' },
-  { id: '2', customer: 'John Doe', amount: '$120.50', status: 'Completed', time: '09:15 AM' },
-  { id: '3', customer: 'Jane Smith', amount: '$32.00', status: 'Pending', time: '08:45 AM' },
-  { id: '4', customer: 'Walking Customer', amount: '$15.00', status: 'Completed', time: 'Yesterday' },
-];
-
-const SaleItem = ({ item }: { item: typeof RECENT_SALES[0] }) => (
+const SaleItem = ({ item }: { item: Sale }) => (
   <View style={styles.saleCard}>
     <View style={styles.saleHeader}>
       <View style={styles.customerInfo}>
@@ -30,6 +23,8 @@ const SaleItem = ({ item }: { item: typeof RECENT_SALES[0] }) => (
 );
 
 const SalesScreen = () => {
+  const { sales, totalSales, totalRevenue } = useSales();
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
@@ -40,17 +35,17 @@ const SalesScreen = () => {
           <View style={styles.summaryCard}>
             <View style={styles.summaryItem}>
               <Text style={styles.summaryLabel}>Today's Revenue</Text>
-              <Text style={styles.summaryValue}>$ 197.50</Text>
+              <Text style={styles.summaryValue}>$ {totalRevenue.toFixed(2)}</Text>
             </View>
             <View style={styles.divider} />
             <View style={styles.summaryItem}>
               <Text style={styles.summaryLabel}>Total Sales</Text>
-              <Text style={styles.summaryValue}>3</Text>
+              <Text style={styles.summaryValue}>{totalSales}</Text>
             </View>
           </View>
 
           <Text style={styles.sectionTitle}>Recent Transactions</Text>
-          {RECENT_SALES.map(sale => (
+          {sales.map(sale => (
             <SaleItem key={sale.id} item={sale} />
           ))}
           
