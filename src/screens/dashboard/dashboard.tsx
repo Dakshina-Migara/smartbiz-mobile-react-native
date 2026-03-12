@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   View, 
   Text, 
@@ -15,9 +15,13 @@ import BottomNavbar from '../../component/Dashboard/BottomNavbar';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/RootNavigator';
+import NewSaleModal from '../../component/Sales/NewSaleModal';
+import { useSales } from '../../context/SalesContext';
 
 const DashboardScreen = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const [showNewSaleModal, setShowNewSaleModal] = useState(false);
+  const { totalSales, totalRevenue, totalProducts, lowStockItems } = useSales();
 
   return (
     <SafeAreaView style={styles.container}>
@@ -34,10 +38,10 @@ const DashboardScreen = () => {
         </View>
 
         <View style={styles.statsGrid}>
-          <StatCard label="Total Products" value="3" />
-          <StatCard label="Total Sales" value="0" />
-          <StatCard label="Revenue" value="$ 0.00" />
-          <StatCard label="Low Stock Item" value="0" />
+          <StatCard label="Total Products" value={totalProducts.toString()} />
+          <StatCard label="Total Sales" value={totalSales.toString()} />
+          <StatCard label="Revenue" value={`$ ${totalRevenue.toFixed(2)}`} />
+          <StatCard label="Low Stock Item" value={lowStockItems.toString()} />
         </View>
 
         <View style={styles.actionSection}>
@@ -46,7 +50,7 @@ const DashboardScreen = () => {
           <ActionCard 
             title="New Sale" 
             subtitle="Create a new sale entry" 
-            onPress={() => navigation.navigate('Sales')}
+            onPress={() => setShowNewSaleModal(true)}
           />
           
           <ActionCard 
@@ -59,6 +63,11 @@ const DashboardScreen = () => {
         {/* Space for floating navbar */}
         <View style={{ height: 100 }} />
       </ScrollView>
+
+      <NewSaleModal 
+        visible={showNewSaleModal} 
+        onClose={() => setShowNewSaleModal(false)} 
+      />
 
       <FAB
         icon="message-outline"
