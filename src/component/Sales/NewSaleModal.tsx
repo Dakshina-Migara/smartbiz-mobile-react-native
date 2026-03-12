@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, View, Text, StyleSheet, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
-import { TextInput, Button, List, Divider } from 'react-native-paper';
+import { Button, List, Divider, Searchbar } from 'react-native-paper';
 import { useSales } from '../../context/SalesContext';
 import { customerService, mobileService, CustomerData, InventoryData } from '../../services/api';
 
@@ -14,19 +14,19 @@ const BUSINESS_ID = 1;
 const NewSaleModal: React.FC<NewSaleModalProps> = ({ visible, onClose }) => {
   const { addSale } = useSales();
   
-  // Customer State
-  const [customerSearch, setCustomerSearch] = useState('');
-  const [selectedCustomer, setSelectedCustomer] = useState<CustomerData | null>(null);
+  // Data State
   const [customers, setCustomers] = useState<CustomerData[]>([]);
-  const [loadingCustomers, setLoadingCustomers] = useState(false);
-  const [showCustomerList, setShowCustomerList] = useState(false);
-
-  // Product State
   const [products, setProducts] = useState<InventoryData[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  // Selection State
+  const [selectedCustomer, setSelectedCustomer] = useState<CustomerData | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<InventoryData | null>(null);
-  const [productSearch, setProductSearch] = useState('');
-  const [showProductList, setShowProductList] = useState(false);
   const [quantity, setQuantity] = useState('1');
+
+  // UI State for "Dropboxes" (Expandable Lists)
+  const [isCustomerExpanded, setIsCustomerExpanded] = useState(false);
+  const [isProductExpanded, setIsProductExpanded] = useState(false);
 
   useEffect(() => {
     if (visible) {
@@ -35,7 +35,7 @@ const NewSaleModal: React.FC<NewSaleModalProps> = ({ visible, onClose }) => {
   }, [visible]);
 
   const loadData = async () => {
-    setLoadingCustomers(true);
+    setLoading(true);
     try {
       const [customerData, inventoryData] = await Promise.all([
         customerService.getCustomers(BUSINESS_ID),
@@ -46,31 +46,18 @@ const NewSaleModal: React.FC<NewSaleModalProps> = ({ visible, onClose }) => {
     } catch (error) {
       console.error('Failed to load modal data:', error);
     } finally {
-      setLoadingCustomers(false);
+      setLoading(false);
     }
   };
 
-  const handleSelectCustomer = (cust: CustomerData) => {
-    setSelectedCustomer(cust);
-    setCustomerSearch(cust.name);
-    setShowCustomerList(false);
-  };
-
-  const handleSelectProduct = (prod: InventoryData) => {
-    setSelectedProduct(prod);
-    setProductSearch(prod.productName);
-    setShowProductList(false);
-  };
-
   const handleAddSale = async () => {
-    if (!selectedCustomer && !customerSearch) return;
-    if (!selectedProduct) return;
+    if (!selectedCustomer || !selectedProduct) return;
 
     try {
       await addSale({
-        customerName: selectedCustomer ? selectedCustomer.name : customerSearch,
-        customerEmail: selectedCustomer?.email,
-        customerPhone: selectedCustomer?.phone,
+        customerName: selectedCustomer.name,
+        customerEmail: selectedCustomer.email,
+        customerPhone: selectedCustomer.phone,
         items: [
           {
             productId: selectedProduct.productId,
@@ -90,20 +77,12 @@ const NewSaleModal: React.FC<NewSaleModalProps> = ({ visible, onClose }) => {
   };
 
   const resetForm = () => {
-    setCustomerSearch('');
     setSelectedCustomer(null);
-    setProductSearch('');
     setSelectedProduct(null);
     setQuantity('1');
+    setIsCustomerExpanded(false);
+    setIsProductExpanded(false);
   };
-
-  const filteredCustomers = customers.filter(c => 
-    c.name.toLowerCase().includes(customerSearch.toLowerCase())
-  );
-
-  const filteredProducts = products.filter(p => 
-    p.productName.toLowerCase().includes(productSearch.toLowerCase())
-  );
 
   return (
     <Modal
@@ -118,125 +97,139 @@ const NewSaleModal: React.FC<NewSaleModalProps> = ({ visible, onClose }) => {
       >
         <View style={styles.modalContainer}>
           <View style={styles.header}>
-            <Text style={styles.title}>New Sale</Text>
+            <Text style={styles.title}>Quick Sale</Text>
             <TouchableOpacity onPress={onClose}>
               <Text style={styles.closeButton}>Cancel</Text>
             </TouchableOpacity>
           </View>
 
           <ScrollView style={styles.form} keyboardShouldPersistTaps="handled">
-            {/* Customer Selection */}
-            <View style={[styles.inputContainer, { zIndex: 3000 }]}>
-              <Text style={styles.label}>Select Customer</Text>
-              <TextInput
-                value={customerSearch}
-                onChangeText={(text) => {
-                  setCustomerSearch(text);
-                  setSelectedCustomer(null);
-                  setShowCustomerList(text.length > 0);
-                }}
-                onFocus={() => setShowCustomerList(true)}
-                mode="outlined"
-                style={styles.input}
-                outlineColor="#E5E7EB"
-                activeOutlineColor="#000000"
-                placeholder="Search database customers..."
-                right={loadingCustomers ? <TextInput.Icon icon={() => <ActivityIndicator size="small" />} /> : null}
-              />
-              
-              {showCustomerList && filteredCustomers.length > 0 && (
-                <View style={styles.dropdown}>
-                  <ScrollView style={{ maxHeight: 150 }} nestedScrollEnabled>
-                    {filteredCustomers.map((cust) => (
+            {loading && !customers.length ? (
+              <ActivityIndicator color="#000" style={{ marginVertical: 20 }} />
+            ) : (
+              <>
+                {/* Customer Dropbox */}
+                <View style={styles.inputContainer}>
+                  <Text style={styles.label}>Customer</Text>
+                  <TouchableOpacity 
+                    style={styles.dropboxHeader} 
+                    onPress={() => {
+                      setIsCustomerExpanded(!isCustomerExpanded);
+                      setIsProductExpanded(false);
+                    }}
+                  >
+                    <Text style={[styles.dropboxValue, !selectedCustomer && styles.placeholder]}>
+                      {selectedCustomer ? selectedCustomer.name : 'Choose a customer'}
+                    </Text>
+                    <Text style={styles.chevron}>{isCustomerExpanded ? '▲' : '▼'}</Text>
+                  </TouchableOpacity>
+                  
+                  {isCustomerExpanded && (
+                    <View style={styles.dropboxContent}>
+                      <ScrollView style={{ maxHeight: 200 }} nestedScrollEnabled>
+                        {customers.map((cust) => (
+                          <TouchableOpacity 
+                            key={cust.customerId}
+                            style={styles.dropItem}
+                            onPress={() => {
+                              setSelectedCustomer(cust);
+                              setIsCustomerExpanded(false);
+                            }}
+                          >
+                            <Text style={styles.itemTitle}>{cust.name}</Text>
+                            {cust.phone && <Text style={styles.itemSub}>{cust.phone}</Text>}
+                            <Divider />
+                          </TouchableOpacity>
+                        ))}
+                      </ScrollView>
+                    </View>
+                  )}
+                </View>
+
+                {/* Product Dropbox */}
+                <View style={[styles.inputContainer, { marginTop: 10 }]}>
+                  <Text style={styles.label}>Product</Text>
+                  <TouchableOpacity 
+                    style={styles.dropboxHeader} 
+                    onPress={() => {
+                      setIsProductExpanded(!isProductExpanded);
+                      setIsCustomerExpanded(false);
+                    }}
+                  >
+                    <Text style={[styles.dropboxValue, !selectedProduct && styles.placeholder]}>
+                      {selectedProduct ? selectedProduct.productName : 'Choose a product'}
+                    </Text>
+                    <Text style={styles.chevron}>{isProductExpanded ? '▲' : '▼'}</Text>
+                  </TouchableOpacity>
+                  
+                  {isProductExpanded && (
+                    <View style={styles.dropboxContent}>
+                      <ScrollView style={{ maxHeight: 200 }} nestedScrollEnabled>
+                        {products.map((prod) => (
+                          <TouchableOpacity 
+                            key={prod.productId}
+                            style={styles.dropItem}
+                            onPress={() => {
+                              setSelectedProduct(prod);
+                              setIsProductExpanded(false);
+                            }}
+                          >
+                            <View style={styles.itemRow}>
+                              <Text style={styles.itemTitle}>{prod.productName}</Text>
+                              <Text style={styles.itemPrice}>${prod.price.toFixed(2)}</Text>
+                            </View>
+                            <Text style={styles.itemSub}>Stock: {prod.stockLevel}</Text>
+                            <Divider />
+                          </TouchableOpacity>
+                        ))}
+                      </ScrollView>
+                    </View>
+                  )}
+                </View>
+
+                {/* Calculation Area */}
+                <View style={styles.calcRow}>
+                  <View style={{ flex: 1, marginRight: 12 }}>
+                    <Text style={styles.label}>Qty</Text>
+                    <View style={styles.qtyContainer}>
                       <TouchableOpacity 
-                        key={cust.customerId}
-                        style={styles.item}
-                        onPress={() => handleSelectCustomer(cust)}
+                        onPress={() => setQuantity(Math.max(1, parseInt(quantity || '0', 10) - 1).toString())}
+                        style={styles.qtyBtn}
                       >
-                        <Text style={styles.itemText}>{cust.name}</Text>
-                        <Text style={styles.itemSubtext}>{cust.phone || 'No phone'}</Text>
-                        <Divider />
+                        <Text style={styles.qtyBtnText}>-</Text>
                       </TouchableOpacity>
-                    ))}
-                  </ScrollView>
-                </View>
-              )}
-            </View>
-
-            {/* Product Selection */}
-            <View style={[styles.inputContainer, { zIndex: 2000, marginTop: 10 }]}>
-              <Text style={styles.label}>Select Product</Text>
-              <TextInput
-                value={productSearch}
-                onChangeText={(text) => {
-                  setProductSearch(text);
-                  setSelectedProduct(null);
-                  setShowProductList(text.length > 0);
-                }}
-                onFocus={() => setShowProductList(true)}
-                mode="outlined"
-                style={styles.input}
-                outlineColor="#E5E7EB"
-                activeOutlineColor="#000000"
-                placeholder="Search products..."
-              />
-              
-              {showProductList && filteredProducts.length > 0 && (
-                <View style={styles.dropdown}>
-                  <ScrollView style={{ maxHeight: 150 }} nestedScrollEnabled>
-                    {filteredProducts.map((prod) => (
+                      <Text style={styles.qtyText}>{quantity}</Text>
                       <TouchableOpacity 
-                        key={prod.productId}
-                        style={styles.item}
-                        onPress={() => handleSelectProduct(prod)}
+                        onPress={() => setQuantity((parseInt(quantity || '0', 10) + 1).toString())}
+                        style={styles.qtyBtn}
                       >
-                        <View style={styles.row}>
-                          <Text style={styles.itemText}>{prod.productName}</Text>
-                          <Text style={styles.priceText}>${prod.price.toFixed(2)}</Text>
-                        </View>
-                        <Text style={styles.itemSubtext}>In Stock: {prod.stockLevel}</Text>
-                        <Divider />
+                        <Text style={styles.qtyBtnText}>+</Text>
                       </TouchableOpacity>
-                    ))}
-                  </ScrollView>
-                </View>
-              )}
-            </View>
+                    </View>
+                  </View>
 
-            {/* Quantity */}
-            <View style={styles.row}>
-              <View style={{ flex: 1, marginRight: 8 }}>
-                <Text style={styles.label}>Quantity</Text>
-                <TextInput
-                  value={quantity}
-                  onChangeText={setQuantity}
-                  mode="outlined"
-                  keyboardType="numeric"
-                  style={styles.input}
-                  outlineColor="#E5E7EB"
-                  activeOutlineColor="#000000"
-                />
-              </View>
-              <View style={{ flex: 2 }}>
-                <Text style={styles.label}>Total Amount</Text>
-                <View style={styles.totalDisplay}>
-                  <Text style={styles.totalValue}>
-                    ${selectedProduct ? (selectedProduct.price * parseInt(quantity || '0', 10)).toFixed(2) : '0.00'}
-                  </Text>
+                  <View style={{ flex: 1.5 }}>
+                    <Text style={styles.label}>Total Amount</Text>
+                    <View style={styles.totalDisplay}>
+                      <Text style={styles.totalValue}>
+                        ${selectedProduct ? (selectedProduct.price * parseInt(quantity || '0', 10)).toFixed(2) : '0.00'}
+                      </Text>
+                    </View>
+                  </View>
                 </View>
-              </View>
-            </View>
 
-            <Button 
-              mode="contained" 
-              onPress={handleAddSale}
-              style={styles.submitButton}
-              labelStyle={styles.submitButtonLabel}
-              contentStyle={styles.submitButtonContent}
-              disabled={(!selectedCustomer && !customerSearch) || !selectedProduct}
-            >
-              Confirm Sale
-            </Button>
+                <Button 
+                  mode="contained" 
+                  onPress={handleAddSale}
+                  style={styles.submitButton}
+                  labelStyle={styles.submitButtonLabel}
+                  contentStyle={styles.submitButtonContent}
+                  disabled={!selectedCustomer || !selectedProduct}
+                >
+                  Process Sale
+                </Button>
+              </>
+            )}
           </ScrollView>
         </View>
       </KeyboardAvoidingView>
@@ -247,111 +240,168 @@ const NewSaleModal: React.FC<NewSaleModalProps> = ({ visible, onClose }) => {
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(0,0,0,0.4)',
     justifyContent: 'flex-end',
   },
   modalContainer: {
     backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: 32,
-    borderTopRightRadius: 32,
+    borderTopLeftRadius: 36,
+    borderTopRightRadius: 36,
     padding: 24,
-    minHeight: '75%',
+    minHeight: '70%',
+    maxHeight: '90%',
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 24,
   },
   title: {
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: '900',
-    color: '#000000',
+    color: '#111827',
   },
   closeButton: {
     fontSize: 16,
     color: '#6B7280',
-    fontWeight: '600',
+    fontWeight: '700',
   },
   form: {
     flex: 1,
   },
   inputContainer: {
-    marginBottom: 16,
-    position: 'relative',
+    marginBottom: 20,
+    zIndex: 10,
   },
   label: {
     fontSize: 14,
-    fontWeight: '700',
-    color: '#374151',
-    marginBottom: 8,
+    fontWeight: '800',
+    color: '#4B5563',
+    marginBottom: 10,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
-  input: {
-    backgroundColor: '#FFFFFF',
-  },
-  dropdown: {
-    position: 'absolute',
-    top: 85,
-    left: 0,
-    right: 0,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    borderWidth: 1,
+  dropboxHeader: {
+    height: 60,
+    backgroundColor: '#F9FAFB',
+    borderRadius: 16,
+    borderWidth: 1.5,
     borderColor: '#E5E7EB',
-    elevation: 5,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    zIndex: 5000,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    justifyContent: 'space-between',
   },
-  item: {
-    padding: 16,
-  },
-  itemText: {
+  dropboxValue: {
     fontSize: 16,
     fontWeight: '600',
     color: '#111827',
   },
-  itemSubtext: {
+  placeholder: {
+    color: '#9CA3AF',
+  },
+  chevron: {
     fontSize: 12,
     color: '#6B7280',
-    marginTop: 2,
   },
-  row: {
+  dropboxContent: {
+    marginTop: 8,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    borderWidth: 1.5,
+    borderColor: '#E5E7EB',
+    elevation: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    overflow: 'hidden',
+  },
+  dropItem: {
+    padding: 16,
+  },
+  itemTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#111827',
+  },
+  itemSub: {
+    fontSize: 13,
+    color: '#6B7280',
+    marginTop: 2,
+    fontWeight: '500',
+  },
+  itemRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  priceText: {
+  itemPrice: {
     fontSize: 16,
     fontWeight: '800',
     color: '#10B981',
   },
-  totalDisplay: {
-    height: 50,
+  calcRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginTop: 10,
+  },
+  qtyContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: '#F3F4F6',
+    borderRadius: 16,
+    height: 56,
+    paddingHorizontal: 8,
+  },
+  qtyBtn: {
+    width: 40,
+    height: 40,
+    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     justifyContent: 'center',
-    paddingHorizontal: 16,
-    marginTop: 6,
+    alignItems: 'center',
+    elevation: 2,
   },
-  totalValue: {
-    fontSize: 18,
+  qtyBtnText: {
+    fontSize: 20,
     fontWeight: '900',
     color: '#000000',
+  },
+  qtyText: {
+    flex: 1,
+    textAlign: 'center',
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#111827',
+  },
+  totalDisplay: {
+    height: 56,
+    backgroundColor: '#111827',
+    borderRadius: 16,
+    justifyContent: 'center',
+    paddingHorizontal: 20,
+  },
+  totalValue: {
+    fontSize: 22,
+    fontWeight: '900',
+    color: '#FFFFFF',
   },
   submitButton: {
     marginTop: 32,
     backgroundColor: '#000000',
-    borderRadius: 16,
+    height: 60,
+    borderRadius: 20,
+    justifyContent: 'center',
   },
   submitButtonContent: {
-    height: 56,
+    height: 60,
   },
   submitButtonLabel: {
-    fontSize: 16,
-    fontWeight: '800',
+    fontSize: 18,
+    fontWeight: '900',
     color: '#FFFFFF',
   },
 });
