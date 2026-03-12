@@ -41,9 +41,6 @@ const LoginScreen = () => {
       >
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
           <View style={styles.header}>
-            <View style={styles.logoPlaceholder}>
-              <Text style={styles.logoText}>SB</Text>
-            </View>
             <Text style={styles.title}>Welcome Back</Text>
             <Text style={styles.subtitle}>Sign in to manage your business</Text>
           </View>
@@ -81,10 +78,6 @@ const LoginScreen = () => {
               }
             />
 
-            <TouchableOpacity style={styles.forgotPassword}>
-              <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
-            </TouchableOpacity>
-
             <Button
               mode="contained"
               onPress={handleLogin}
@@ -96,13 +89,6 @@ const LoginScreen = () => {
             >
               {isLoading ? 'Signing In...' : 'Sign In'}
             </Button>
-
-            <View style={styles.footer}>
-              <Text style={styles.footerText}>Don't have an account? </Text>
-              <TouchableOpacity>
-                <Text style={styles.signUpLink}>Sign Up</Text>
-              </TouchableOpacity>
-            </View>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -126,20 +112,6 @@ const styles = StyleSheet.create({
   header: {
     alignItems: 'center',
     marginBottom: 48,
-  },
-  logoPlaceholder: {
-    width: 80,
-    height: 80,
-    backgroundColor: '#000000',
-    borderRadius: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  logoText: {
-    color: '#FFFFFF',
-    fontSize: 32,
-    fontWeight: '900',
   },
   title: {
     fontSize: 32,
@@ -184,21 +156,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '800',
     color: '#FFFFFF',
-  },
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginTop: 32,
-  },
-  footerText: {
-    color: '#6B7280',
-    fontSize: 15,
-    fontWeight: '500',
-  },
-  signUpLink: {
-    color: '#000000',
-    fontSize: 15,
-    fontWeight: '800',
   },
 });
 
