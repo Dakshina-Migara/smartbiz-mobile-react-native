@@ -3,16 +3,16 @@ import { Modal, View, Text, StyleSheet, TouchableOpacity, ScrollView, KeyboardAv
 import { Button, List, Divider, Searchbar } from 'react-native-paper';
 import { useSales } from '../../context/SalesContext';
 import { customerService, mobileService, CustomerData, InventoryData } from '../../services/api';
+import { useAuth } from '../../context/AuthContext';
 
 interface NewSaleModalProps {
   visible: boolean;
   onClose: () => void;
 }
 
-const BUSINESS_ID = 1;
-
 const NewSaleModal: React.FC<NewSaleModalProps> = ({ visible, onClose }) => {
   const { addSale } = useSales();
+  const { user } = useAuth();
   
   // Data State
   const [customers, setCustomers] = useState<CustomerData[]>([]);
@@ -35,11 +35,13 @@ const NewSaleModal: React.FC<NewSaleModalProps> = ({ visible, onClose }) => {
   }, [visible]);
 
   const loadData = async () => {
+    if (!user?.businessId) return;
+    
     setLoading(true);
     try {
       const [customerData, inventoryData] = await Promise.all([
-        customerService.getCustomers(BUSINESS_ID),
-        mobileService.getInventory(BUSINESS_ID)
+        customerService.getCustomers(user.businessId),
+        mobileService.getInventory(user.businessId)
       ]);
       setCustomers(customerData);
       setProducts(inventoryData);
