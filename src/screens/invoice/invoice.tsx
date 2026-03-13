@@ -4,7 +4,7 @@ import BottomNavbar from '../../component/Dashboard/BottomNavbar';
 import { useInvoices, Invoice } from '../../context/InvoiceContext';
 import MaterialCommunityIcons from '@react-native-vector-icons/material-design-icons';
 
-const InvoiceItem = ({ item }: { item: Invoice }) => (
+const InvoiceItem = ({ item, onDelete }: { item: Invoice, onDelete: (id: string) => void }) => (
   <View style={styles.invoiceCard}>
     <View style={styles.invoiceInfo}>
       <Text style={styles.invoiceNumber}>{item.invoiceNumber}</Text>
@@ -13,27 +13,57 @@ const InvoiceItem = ({ item }: { item: Invoice }) => (
     </View>
     <View style={styles.statusInfo}>
       <Text style={styles.invoiceAmount}>{item.amount}</Text>
-      <View style={[
-        styles.statusBadge, 
-        item.status === 'Pending' && styles.pendingBadge,
-        item.status === 'Overdue' && styles.overdueBadge
-      ]}>
-        <Text style={[
-          styles.statusText,
-          item.status === 'Pending' && styles.pendingText,
-          item.status === 'Overdue' && styles.overdueText
+      <View style={styles.actionRow}>
+        <View style={[
+          styles.statusBadge, 
+          item.status === 'Pending' && styles.pendingBadge,
+          item.status === 'Overdue' && styles.overdueBadge
         ]}>
-          {item.status}
-        </Text>
+          <Text style={[
+            styles.statusText,
+            item.status === 'Pending' && styles.pendingText,
+            item.status === 'Overdue' && styles.overdueText
+          ]}>
+            {item.status}
+          </Text>
+        </View>
+        <TouchableOpacity 
+          onPress={() => onDelete(item.id)}
+          style={styles.deleteIcon}
+        >
+          <MaterialCommunityIcons name="delete-outline" size={20} color="#EF4444" />
+        </TouchableOpacity>
       </View>
     </View>
   </View>
 );
 
 import GlobalAIChatButton from '../../component/Dashboard/GlobalAIChatButton';
+import { Alert } from 'react-native';
 
 const InvoiceScreen = () => {
-  const { invoices, loading } = useInvoices();
+  const { invoices, loading, deleteInvoice } = useInvoices();
+
+  const handleDeleteInvoice = (id: string) => {
+    Alert.alert(
+      'Delete Invoice',
+      'Are you sure you want to remove this record?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Delete', 
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await deleteInvoice(id);
+            } catch (error) {
+              Alert.alert('Error', 'Failed to delete invoice');
+            }
+          }
+        },
+      ]
+    );
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -54,7 +84,7 @@ const InvoiceScreen = () => {
         ) : (
           <FlatList
             data={invoices}
-            renderItem={({ item }) => <InvoiceItem item={item} />}
+            renderItem={({ item }) => <InvoiceItem item={item} onDelete={handleDeleteInvoice} />}
             keyExtractor={item => item.id}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.listContent}
@@ -162,6 +192,14 @@ const styles = StyleSheet.create({
   },
   statusInfo: {
     alignItems: 'flex-end',
+  },
+  actionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  deleteIcon: {
+    marginLeft: 12,
+    padding: 4,
   },
   invoiceAmount: {
     fontSize: 18,
