@@ -13,6 +13,7 @@ export interface Invoice {
 interface InvoiceContextType {
   invoices: Invoice[];
   addInvoice: (invoice: Omit<Invoice, 'id' | 'invoiceNumber' | 'date'>) => void;
+  deleteInvoice: (invoiceId: string) => Promise<void>;
   loading: boolean;
   refreshInvoices: () => Promise<void>;
 }
@@ -43,6 +44,18 @@ export const InvoiceProvider = ({ children }: { children: ReactNode }) => {
     setInvoices(prev => [newInvoice, ...prev]);
   };
 
+  const deleteInvoice = async (invoiceId: string) => {
+    setLoading(true);
+    try {
+      // In a real app, this would call mobileService.deleteInvoice(user.businessId, invoiceId)
+      // For now, we update local state
+      setInvoices(prev => prev.filter(inv => inv.id !== invoiceId));
+      await new Promise(resolve => setTimeout(() => resolve(null), 500));
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const refreshInvoices = async () => {
     // In a real app, this would fetch from /api/v1/mobile/${businessId}/invoices
     setLoading(true);
@@ -55,7 +68,7 @@ export const InvoiceProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <InvoiceContext.Provider value={{ invoices, addInvoice, loading, refreshInvoices }}>
+    <InvoiceContext.Provider value={{ invoices, addInvoice, deleteInvoice, loading, refreshInvoices }}>
       {children}
     </InvoiceContext.Provider>
   );
