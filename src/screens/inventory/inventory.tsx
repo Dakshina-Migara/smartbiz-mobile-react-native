@@ -1,10 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, FlatList, TextInput, TouchableOpacity, ActivityIndicator, RefreshControl } from 'react-native';
+import { 
+  View, 
+  Text, 
+  StyleSheet, 
+  SafeAreaView, 
+  FlatList, 
+  TextInput, 
+  TouchableOpacity, 
+  ActivityIndicator, 
+  RefreshControl,
+  Alert
+} from 'react-native';
 import BottomNavbar from '../../component/Dashboard/BottomNavbar';
 import Icon from '@react-native-vector-icons/material-design-icons';
-import { mobileService, InventoryData } from '../../services/api';
+import { mobileService, InventoryData, ProductRequest } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import ProductCard from '../../component/Inventory/ProductCard';
+import InventoryModal from '../../component/Inventory/InventoryModal';
+import GlobalAIChatButton from '../../component/Dashboard/GlobalAIChatButton';
 
 const InventoryScreen = () => {
   const { user } = useAuth();
@@ -12,6 +25,9 @@ const InventoryScreen = () => {
   const [products, setProducts] = useState<InventoryData[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<InventoryData | null>(null);
+  const [actionLoading, setActionLoading] = useState(false);
 
   const fetchInventory = async () => {
     if (!user?.businessId) return;
@@ -21,6 +37,7 @@ const InventoryScreen = () => {
       setProducts(data);
     } catch (error) {
       console.error('Failed to fetch inventory:', error);
+      Alert.alert('Error', 'Failed to fetch inventory data.');
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -36,6 +53,57 @@ const InventoryScreen = () => {
     fetchInventory();
   };
 
+  const handleSaveProduct = async (data: ProductRequest) => {
+    if (!user?.businessId) return;
+    setActionLoading(true);
+    try {
+      if (selectedProduct) {
+        await mobileService.updateProduct(user.businessId, selectedProduct.productId, data);
+        Alert.alert('Success', 'Product updated successfully!');
+      } else {
+        await mobileService.addProduct(user.businessId, data);
+        Alert.alert('Success', 'Product added successfully!');
+      }
+      setModalVisible(false);
+      fetchInventory();
+    } catch (error) {
+      console.error('Error saving product:', error);
+      Alert.alert('Error', 'Failed to save product. Please try again.');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleEdit = (product: InventoryData) => {
+    setSelectedProduct(product);
+    setModalVisible(true);
+  };
+
+  const handleDelete = (product: InventoryData) => {
+    Alert.alert(
+      'Delete Product',
+      `Are you sure you want to delete ${product.productName}?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Delete', 
+          style: 'destructive',
+          onPress: async () => {
+            if (!user?.businessId) return;
+            try {
+              await mobileService.deleteProduct(user.businessId, product.productId);
+              Alert.alert('Success', 'Product deleted successfully.');
+              fetchInventory();
+            } catch (error) {
+              console.error('Error deleting product:', error);
+              Alert.alert('Error', 'Failed to delete product.');
+            }
+          }
+        }
+      ]
+    );
+  };
+
   const filteredProducts = products.filter(p => 
     p.productName.toLowerCase().includes(search.toLowerCase()) ||
     p.sku.toLowerCase().includes(search.toLowerCase())
@@ -45,7 +113,13 @@ const InventoryScreen = () => {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Inventory</Text>
-        <TouchableOpacity style={styles.addButton}>
+        <TouchableOpacity 
+          style={styles.addButton}
+          onPress={() => {
+            setSelectedProduct(null);
+            setModalVisible(true);
+          }}
+        >
           <Text style={styles.addButtonText}>Add +</Text>
         </TouchableOpacity>
       </View>
@@ -68,7 +142,13 @@ const InventoryScreen = () => {
       ) : (
         <FlatList
           data={filteredProducts}
-          renderItem={({ item }) => <ProductCard item={item} />}
+          renderItem={({ item }) => (
+            <ProductCard 
+              item={item} 
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+            />
+          )}
           keyExtractor={item => item.productId.toString()}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.listContent}
@@ -83,9 +163,15 @@ const InventoryScreen = () => {
         />
       )}
 
-      <TouchableOpacity style={styles.fab}>
-        <Icon name="message-text-outline" size={28} color="#FFFFFF" />
-      </TouchableOpacity>
+      <InventoryModal
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        onSave={handleSaveProduct}
+        initialData={selectedProduct}
+        loading={actionLoading}
+      />
+
+      <GlobalAIChatButton onPress={() => console.log('AI Chat pressed from Inventory')} />
 
       <BottomNavbar activeTab="Inventory" />
     </SafeAreaView>
@@ -158,22 +244,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#6B7280',
     fontWeight: '500',
-  },
-  fab: {
-    position: 'absolute',
-    bottom: 110,
-    right: 20,
-    backgroundColor: '#111827',
-    width: 56,
-    height: 56,
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 5,
   },
 });
 
