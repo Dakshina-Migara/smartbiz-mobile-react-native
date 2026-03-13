@@ -34,6 +34,14 @@ export interface CustomerData {
   businessId: number;
 }
 
+export interface ProductRequest {
+  productName: string;
+  sku: string;
+  category: string;
+  price: number;
+  stockLevel: number;
+}
+
 export interface InventoryData {
   productId: number;
   productName: string;
@@ -115,6 +123,36 @@ export const mobileService = {
       return response.data;
     } catch (error) {
       console.error('Error fetching sales history:', error);
+      throw error;
+    }
+  },
+
+  addProduct: async (businessId: number, data: ProductRequest) => {
+    try {
+      const response = await api.post(`/mobile/${businessId}/inventory`, data);
+      return response.data;
+    } catch (error) {
+      console.error('Error adding product:', error);
+      throw error;
+    }
+  },
+
+  updateProduct: async (businessId: number, productId: number, data: ProductRequest) => {
+    try {
+      const response = await api.put(`/mobile/${businessId}/inventory/${productId}`, data);
+      return response.data;
+    } catch (error) {
+      console.error('Error updating product:', error);
+      throw error;
+    }
+  },
+
+  deleteProduct: async (businessId: number, productId: number) => {
+    try {
+      const response = await api.delete(`/mobile/${businessId}/inventory/${productId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error deleting product:', error);
       throw error;
     }
   },

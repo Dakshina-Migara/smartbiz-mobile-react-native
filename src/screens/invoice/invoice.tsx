@@ -36,6 +36,8 @@ const InvoiceItem = ({ item }: { item: typeof RECENT_INVOICES[0] }) => (
   </View>
 );
 
+import GlobalAIChatButton from '../../component/Dashboard/GlobalAIChatButton';
+
 const InvoiceScreen = () => {
   return (
     <SafeAreaView style={styles.container}>
@@ -56,6 +58,9 @@ const InvoiceScreen = () => {
           contentContainerStyle={styles.listContent}
         />
       </View>
+
+      <GlobalAIChatButton onPress={() => console.log('AI Chat pressed from Invoice')} />
+
       <BottomNavbar activeTab="Invoice" />
     </SafeAreaView>
   );

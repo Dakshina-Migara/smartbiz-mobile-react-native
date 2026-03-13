@@ -55,19 +55,19 @@ const BottomNavbar: React.FC<BottomNavbarProps> = ({ activeTab }) => {
         />
         <NavItem 
           label="Inventory" 
-          icon="warehouse" 
+          icon="home-variant-outline" 
           isActive={activeTab === 'Inventory'} 
           onPress={() => navigateTo('Inventory')}
         />
         <NavItem 
           label="Sales" 
-          icon="cart" 
+          icon="cart-outline" 
           isActive={activeTab === 'Sales'} 
           onPress={() => navigateTo('Sales')}
         />
         <NavItem 
           label="Invoice" 
-          icon="file-document" 
+          icon="file-document-outline" 
           isActive={activeTab === 'Invoice'} 
           onPress={() => navigateTo('Invoice')}
         />
