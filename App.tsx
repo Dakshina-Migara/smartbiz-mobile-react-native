@@ -14,6 +14,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import RootNavigator from './src/navigation/RootNavigator';
 import { SalesProvider } from './src/context/SalesContext';
 import { AuthProvider } from './src/context/AuthContext';
+import { InvoiceProvider } from './src/context/InvoiceContext';
 
 function App() {
   const isDarkMode = useColorScheme() === 'dark';
@@ -22,12 +23,14 @@ function App() {
     <SafeAreaProvider>
       <PaperProvider>
         <AuthProvider>
-          <SalesProvider>
-            <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-            <NavigationContainer>
-              <RootNavigator />
-            </NavigationContainer>
-          </SalesProvider>
+          <InvoiceProvider>
+            <SalesProvider>
+              <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
+              <NavigationContainer>
+                <RootNavigator />
+              </NavigationContainer>
+            </SalesProvider>
+          </InvoiceProvider>
         </AuthProvider>
       </PaperProvider>
     </SafeAreaProvider>
