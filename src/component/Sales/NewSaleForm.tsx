@@ -57,8 +57,16 @@ const NewSaleForm: React.FC<NewSaleFormProps> = ({ onCancel, onSuccess, products
   const handleAddItem = (product: InventoryData) => {
     const existing = items.find(i => i.productId === product.productId);
     if (existing) {
+      if (existing.qty + 1 > product.stockLevel) {
+        Alert.alert('Stock Limit Reached', `Only ${product.stockLevel} units of ${product.productName} are available in stock.`);
+        return;
+      }
       setItems(items.map(i => i.productId === product.productId ? { ...i, qty: i.qty + 1 } : i));
     } else {
+      if (product.stockLevel < 1) {
+        Alert.alert('Out of Stock', `${product.productName} is currently unavailable.`);
+        return;
+      }
       setItems([...items, { 
         productId: product.productId, 
         name: product.productName, 
@@ -70,10 +78,19 @@ const NewSaleForm: React.FC<NewSaleFormProps> = ({ onCancel, onSuccess, products
   };
 
   const handleUpdateQty = (productId: number, delta: number) => {
+    const product = products.find(p => p.productId === productId);
+    if (!product) return;
+
     setItems(items.map(item => {
       if (item.productId === productId) {
-        const newQty = Math.max(1, item.qty + delta);
-        return { ...item, qty: newQty };
+        const newQty = item.qty + delta;
+        
+        if (delta > 0 && newQty > product.stockLevel) {
+          Alert.alert('Stock Limit Reached', `Only ${product.stockLevel} units of ${item.name} are available.`);
+          return item;
+        }
+        
+        return { ...item, qty: Math.max(1, newQty) };
       }
       return item;
     }));
