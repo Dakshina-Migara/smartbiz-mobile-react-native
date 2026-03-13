@@ -12,6 +12,7 @@ export interface Sale {
 interface SalesContextType {
   sales: Sale[];
   addSale: (saleData: MobileSaleRequest) => Promise<void>;
+  deleteSale: (saleId: string) => Promise<void>;
   totalSales: number;
   totalRevenue: number;
   totalProducts: number;
@@ -62,13 +63,17 @@ export const SalesProvider = ({ children }: { children: ReactNode }) => {
       console.log('Sales History Response:', salesHistory);
       
       if (Array.isArray(salesHistory)) {
-        const mappedSales = salesHistory.map((s: any) => ({
-          id: s.saleId?.toString() || Math.random().toString(),
-          customer: s.customerName || 'Walk-in Customer',
-          amount: `$${(s.totalAmount || 0).toFixed(2)}`,
-          status: (s.status === 'completed' ? 'Completed' : 'Pending') as 'Completed' | 'Pending',
-          time: s.saleDate ? new Date(s.saleDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A',
-        }));
+        const mappedSales = salesHistory.map((s: any) => {
+          // Robust ID handling: try saleId, then id, then fallback to random
+          const actualId = (s.saleId || s.id)?.toString() || Math.random().toString();
+          return {
+            id: actualId,
+            customer: s.customerName || 'Walk-in Customer',
+            amount: `$${(s.totalAmount || 0).toFixed(2)}`,
+            status: (s.status === 'completed' ? 'Completed' : 'Pending') as 'Completed' | 'Pending',
+            time: s.saleDate ? new Date(s.saleDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A',
+          };
+        });
         setSales(mappedSales);
       } else {
         console.warn('Sales history is not an array:', salesHistory);
@@ -101,10 +106,23 @@ export const SalesProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const deleteSale = async (saleId: string) => {
+    if (!user?.businessId) return;
+    try {
+      await mobileService.deleteSale(user.businessId, saleId);
+      // Refresh after deleting
+      await fetchData();
+    } catch (error) {
+      console.error('Failed to delete sale:', error);
+      throw error;
+    }
+  };
+
   return (
     <SalesContext.Provider value={{ 
       sales, 
-      addSale, 
+      addSale,
+      deleteSale,
       totalSales: dashboard.totalSales, 
       totalRevenue: dashboard.revenue,
       totalProducts: dashboard.totalProducts,

@@ -156,6 +156,16 @@ export const mobileService = {
       throw error;
     }
   },
+
+  deleteSale: async (businessId: number, saleId: string) => {
+    try {
+      const response = await api.delete(`/mobile/${businessId}/sales/${saleId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error deleting sale:', error);
+      throw error;
+    }
+  },
 };
 
 export const customerService = {

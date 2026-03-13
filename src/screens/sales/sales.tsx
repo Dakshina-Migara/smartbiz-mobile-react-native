@@ -1,10 +1,14 @@
-import React from 'react';
-import { View, Text, StyleSheet, SafeAreaView, ScrollView } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, ActivityIndicator, Alert, RefreshControl } from 'react-native';
 import BottomNavbar from '../../component/Dashboard/BottomNavbar';
 import { useSales, Sale } from '../../context/SalesContext';
 import GlobalAIChatButton from '../../component/Dashboard/GlobalAIChatButton';
+import NewSaleForm from '../../component/Sales/NewSaleForm';
+import MaterialCommunityIcons from '@react-native-vector-icons/material-design-icons';
+import { mobileService, InventoryData } from '../../services/api';
+import { useAuth } from '../../context/AuthContext';
 
-const SaleItem = ({ item }: { item: Sale }) => (
+const SaleItem = ({ item, onDelete }: { item: Sale, onDelete: (id: string) => void }) => (
   <View style={styles.saleCard}>
     <View style={styles.saleHeader}>
       <View style={styles.customerInfo}>
@@ -13,10 +17,18 @@ const SaleItem = ({ item }: { item: Sale }) => (
       </View>
       <View style={styles.amountInfo}>
         <Text style={styles.saleAmount}>{item.amount}</Text>
-        <View style={[styles.statusBadge, item.status === 'Pending' && styles.pendingBadge]}>
-          <Text style={[styles.statusText, item.status === 'Pending' && styles.pendingText]}>
-            {item.status}
-          </Text>
+        <View style={styles.actionRow}>
+          <View style={[styles.statusBadge, item.status === 'Pending' && styles.pendingBadge]}>
+            <Text style={[styles.statusText, item.status === 'Pending' && styles.pendingText]}>
+              {item.status}
+            </Text>
+          </View>
+          <TouchableOpacity 
+            onPress={() => onDelete(item.id)}
+            style={styles.deleteIcon}
+          >
+            <MaterialCommunityIcons name="delete-outline" size={20} color="#EF4444" />
+          </TouchableOpacity>
         </View>
       </View>
     </View>
@@ -24,32 +36,127 @@ const SaleItem = ({ item }: { item: Sale }) => (
 );
 
 const SalesScreen = () => {
-  const { sales, totalSales, totalRevenue } = useSales();
+  const { sales, totalSales, totalRevenue, refreshData, deleteSale, loading } = useSales();
+  const { user } = useAuth();
+  const [showForm, setShowForm] = useState(false);
+  const [products, setProducts] = useState<InventoryData[]>([]);
+  const [loadingProducts, setLoadingProducts] = useState(false);
+
+  useEffect(() => {
+    fetchProducts();
+  }, [user?.businessId]);
+
+  const fetchProducts = async () => {
+    if (!user?.businessId) return;
+    setLoadingProducts(true);
+    try {
+      const data = await mobileService.getInventory(user.businessId);
+      setProducts(data);
+    } catch (error) {
+      console.error('Failed to fetch products for sales form:', error);
+    } finally {
+      setLoadingProducts(false);
+    }
+  };
+
+  const handleSaleSuccess = () => {
+    setShowForm(false);
+    refreshData();
+  };
+
+  const handleDeleteSale = (id: string) => {
+    Alert.alert(
+      'Delete Sale',
+      'Are you sure you want to remove this record? This action cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Delete', 
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await deleteSale(id);
+            } catch (error) {
+              Alert.alert('Error', 'Failed to delete sale');
+            }
+          }
+        },
+      ]
+    );
+  };
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        style={styles.scrollView} 
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={loading} onRefresh={refreshData} />
+        }
+      >
         <View style={styles.content}>
-          <Text style={styles.title}>Sales</Text>
-          <Text style={styles.subtitle}>Overview of your business earnings</Text>
-
-          <View style={styles.summaryCard}>
-            <View style={styles.summaryItem}>
-              <Text style={styles.summaryLabel}>Today's Revenue</Text>
-              <Text style={styles.summaryValue}>$ {totalRevenue.toFixed(2)}</Text>
+          <View style={styles.headerRow}>
+            <View>
+              <Text style={styles.title}>Sales</Text>
+              <Text style={styles.subtitle}>Overview of your business earnings</Text>
             </View>
-            <View style={styles.divider} />
-            <View style={styles.summaryItem}>
-              <Text style={styles.summaryLabel}>Total Sales</Text>
-              <Text style={styles.summaryValue}>{totalSales}</Text>
-            </View>
+            <TouchableOpacity
+              style={styles.headerAddButton}
+              onPress={() => setShowForm(!showForm)}
+            >
+              <MaterialCommunityIcons
+                name={showForm ? "chevron-up" : "plus"}
+                size={24}
+                color="#FFF"
+              />
+            </TouchableOpacity>
           </View>
 
+          {showForm && (
+            <View style={styles.formContainer}>
+              {loadingProducts ? (
+                <ActivityIndicator color="#000" style={{ marginVertical: 40 }} />
+              ) : (
+                <NewSaleForm
+                  products={products}
+                  onCancel={() => setShowForm(false)}
+                  onSuccess={handleSaleSuccess}
+                />
+              )}
+              <View style={styles.sectionDivider} />
+            </View>
+          )}
+
+          {!showForm && (
+            <View style={styles.summaryCard}>
+              <View style={styles.summaryItem}>
+                <Text style={styles.summaryLabel}>Today's Revenue</Text>
+                <Text style={styles.summaryValue}>$ {totalRevenue.toFixed(2)}</Text>
+              </View>
+              <View style={styles.divider} />
+              <View style={styles.summaryItem}>
+                <Text style={styles.summaryLabel}>Total Sales</Text>
+                <Text style={styles.summaryValue}>{totalSales}</Text>
+              </View>
+            </View>
+          )}
+
           <Text style={styles.sectionTitle}>Recent Transactions</Text>
-          {sales.map(sale => (
-            <SaleItem key={sale.id} item={sale} />
-          ))}
-          
+          {sales.length === 0 ? (
+            <View style={styles.emptyContainer}>
+              <MaterialCommunityIcons name="receipt" size={48} color="#D1D5DB" />
+              <Text style={styles.emptyText}>No sales recorded yet</Text>
+            </View>
+          ) : (
+            sales.map(sale => (
+              <SaleItem 
+                key={sale.id} 
+                item={sale} 
+                onDelete={handleDeleteSale} 
+              />
+            ))
+          )}
+
           <View style={{ height: 100 }} />
         </View>
       </ScrollView>
@@ -65,7 +172,7 @@ const SalesScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: '#F3F4F6',
   },
   scrollView: {
     flex: 1,
@@ -74,6 +181,12 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
     paddingTop: 40,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 24,
   },
   title: {
     fontSize: 28,
@@ -85,7 +198,28 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: '#4B5563',
     fontWeight: '500',
+  },
+  headerAddButton: {
+    backgroundColor: '#000',
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+  },
+  formContainer: {
     marginBottom: 24,
+  },
+  sectionDivider: {
+    height: 1,
+    backgroundColor: '#E5E7EB',
+    marginTop: 24,
+    marginBottom: 8,
   },
   summaryCard: {
     backgroundColor: '#000000',
@@ -126,6 +260,17 @@ const styles = StyleSheet.create({
     color: '#111827',
     marginBottom: 16,
   },
+  emptyContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 60,
+  },
+  emptyText: {
+    marginTop: 12,
+    fontSize: 16,
+    color: '#9CA3AF',
+    fontWeight: '600',
+  },
   saleCard: {
     backgroundColor: '#FFFFFF',
     borderRadius: 24,
@@ -158,6 +303,14 @@ const styles = StyleSheet.create({
   },
   amountInfo: {
     alignItems: 'flex-end',
+  },
+  actionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  deleteIcon: {
+    marginLeft: 12,
+    padding: 4,
   },
   saleAmount: {
     fontSize: 18,
