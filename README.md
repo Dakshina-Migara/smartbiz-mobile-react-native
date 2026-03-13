@@ -96,6 +96,3 @@ The application connects to the Smartbiz API. You can configure the base URL in 
 
 This project is private and intended for use by Smartbiz administrators and business owners.
 
----
-
-*Developed with ❤️ by the Smartbiz Team.*
