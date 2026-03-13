@@ -8,11 +8,10 @@ import {
   StatusBar,
   RefreshControl 
 } from 'react-native';
-import { FAB } from 'react-native-paper';
+import GlobalAIChatButton from '../../component/Dashboard/GlobalAIChatButton';
 import StatCard from '../../component/Dashboard/StatCard';
 import ActionCard from '../../component/Dashboard/ActionCard';
 import BottomNavbar from '../../component/Dashboard/BottomNavbar';
-
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/RootNavigator';
@@ -23,6 +22,11 @@ const DashboardScreen = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [showNewSaleModal, setShowNewSaleModal] = useState(false);
   const { totalSales, totalRevenue, totalProducts, lowStockItems, loading, refreshData } = useSales();
+
+  const handleAIChatPress = () => {
+    console.log('AI Chat pressed');
+    // Logic for AI Chat
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -73,12 +77,7 @@ const DashboardScreen = () => {
         onClose={() => setShowNewSaleModal(false)} 
       />
 
-      <FAB
-        icon="message-outline"
-        style={styles.fab}
-        color="#FFFFFF"
-        onPress={() => console.log('FAB pressed')}
-      />
+      <GlobalAIChatButton onPress={handleAIChatPress} />
 
       <BottomNavbar activeTab="Dashboard" />
     </SafeAreaView>
@@ -126,14 +125,7 @@ const styles = StyleSheet.create({
     color: '#111827',
     marginBottom: 16,
   },
-  fab: {
-    position: 'absolute',
-    margin: 16,
-    right: 10,
-    bottom: 110,
-    backgroundColor: '#000000', // Black FAB from image
-    borderRadius: 30, // Make it more circular
-  },
 });
+
 
 export default DashboardScreen;

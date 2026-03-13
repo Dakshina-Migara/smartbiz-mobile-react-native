@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, SafeAreaView, ScrollView } from 'react-native';
 import BottomNavbar from '../../component/Dashboard/BottomNavbar';
 import { useSales, Sale } from '../../context/SalesContext';
+import GlobalAIChatButton from '../../component/Dashboard/GlobalAIChatButton';
 
 const SaleItem = ({ item }: { item: Sale }) => (
   <View style={styles.saleCard}>
@@ -52,10 +53,14 @@ const SalesScreen = () => {
           <View style={{ height: 100 }} />
         </View>
       </ScrollView>
+
+      <GlobalAIChatButton onPress={() => console.log('AI Chat pressed from Sales')} />
+
       <BottomNavbar activeTab="Sales" />
     </SafeAreaView>
   );
 };
+
 
 const styles = StyleSheet.create({
   container: {
