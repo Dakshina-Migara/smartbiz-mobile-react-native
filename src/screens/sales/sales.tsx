@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, ActivityIndicator, Alert, RefreshControl } from 'react-native';
 import BottomNavbar from '../../component/Dashboard/BottomNavbar';
 import { useSales, Sale } from '../../context/SalesContext';
 import GlobalAIChatButton from '../../component/Dashboard/GlobalAIChatButton';
@@ -36,7 +36,7 @@ const SaleItem = ({ item, onDelete }: { item: Sale, onDelete: (id: string) => vo
 );
 
 const SalesScreen = () => {
-  const { sales, totalSales, totalRevenue, refreshData, deleteSale } = useSales();
+  const { sales, totalSales, totalRevenue, refreshData, deleteSale, loading } = useSales();
   const { user } = useAuth();
   const [showForm, setShowForm] = useState(false);
   const [products, setProducts] = useState<InventoryData[]>([]);
@@ -87,7 +87,13 @@ const SalesScreen = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        style={styles.scrollView} 
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={loading} onRefresh={refreshData} />
+        }
+      >
         <View style={styles.content}>
           <View style={styles.headerRow}>
             <View>
