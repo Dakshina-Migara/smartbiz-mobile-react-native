@@ -12,6 +12,7 @@ export interface Sale {
 interface SalesContextType {
   sales: Sale[];
   addSale: (saleData: MobileSaleRequest) => Promise<void>;
+  deleteSale: (saleId: string) => Promise<void>;
   totalSales: number;
   totalRevenue: number;
   totalProducts: number;
@@ -101,10 +102,23 @@ export const SalesProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const deleteSale = async (saleId: string) => {
+    if (!user?.businessId) return;
+    try {
+      await mobileService.deleteSale(user.businessId, saleId);
+      // Refresh after deleting
+      await fetchData();
+    } catch (error) {
+      console.error('Failed to delete sale:', error);
+      throw error;
+    }
+  };
+
   return (
     <SalesContext.Provider value={{ 
       sales, 
-      addSale, 
+      addSale,
+      deleteSale,
       totalSales: dashboard.totalSales, 
       totalRevenue: dashboard.revenue,
       totalProducts: dashboard.totalProducts,
