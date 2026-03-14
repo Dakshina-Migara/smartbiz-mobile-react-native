@@ -6,19 +6,15 @@ import { InventoryData } from '../../services/api';
 interface ProductCardProps {
   item: InventoryData;
   onEdit?: (item: InventoryData) => void;
-  onDelete?: (item: InventoryData) => void;
 }
 
-const ProductCard: React.FC<ProductCardProps> = ({ item, onEdit, onDelete }) => (
+const ProductCard: React.FC<ProductCardProps> = ({ item, onEdit }) => (
   <View style={styles.card}>
     <View style={styles.cardHeader}>
       <Text style={styles.productName}>{item.productName}</Text>
       <View style={styles.actionIcons}>
         <TouchableOpacity style={styles.iconButton} onPress={() => onEdit?.(item)}>
           <Icon name="pencil-outline" size={18} color="#4B5563" />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.iconButton} onPress={() => onDelete?.(item)}>
-          <Icon name="delete-outline" size={18} color="#EF4444" />
         </TouchableOpacity>
       </View>
     </View>
