@@ -15,12 +15,10 @@ import BottomNavbar from '../../component/Dashboard/BottomNavbar';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/RootNavigator';
-import NewSaleModal from '../../component/Sales/NewSaleModal';
 import { useSales } from '../../context/SalesContext';
 
 const DashboardScreen = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const [showNewSaleModal, setShowNewSaleModal] = useState(false);
   const { totalSales, totalRevenue, totalProducts, lowStockItems, loading, refreshData } = useSales();
 
   const handleAIChatPress = () => {
@@ -58,7 +56,7 @@ const DashboardScreen = () => {
           <ActionCard 
             title="New Sale" 
             subtitle="Create a new sale entry" 
-            onPress={() => setShowNewSaleModal(true)}
+            onPress={() => navigation.navigate('Sales', { openForm: true })}
           />
           
           <ActionCard 
@@ -71,11 +69,6 @@ const DashboardScreen = () => {
         {/* Space for floating navbar */}
         <View style={{ height: 100 }} />
       </ScrollView>
-
-      <NewSaleModal 
-        visible={showNewSaleModal} 
-        onClose={() => setShowNewSaleModal(false)} 
-      />
 
       <GlobalAIChatButton onPress={handleAIChatPress} />
 
