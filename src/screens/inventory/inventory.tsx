@@ -79,31 +79,6 @@ const InventoryScreen = () => {
     setModalVisible(true);
   };
 
-  const handleDelete = (product: InventoryData) => {
-    Alert.alert(
-      'Delete Product',
-      `Are you sure you want to delete ${product.productName}?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Delete', 
-          style: 'destructive',
-          onPress: async () => {
-            if (!user?.businessId) return;
-            try {
-              await mobileService.deleteProduct(user.businessId, product.productId);
-              Alert.alert('Success', 'Product deleted successfully.');
-              fetchInventory();
-            } catch (error) {
-              console.error('Error deleting product:', error);
-              Alert.alert('Error', 'Failed to delete product.');
-            }
-          }
-        }
-      ]
-    );
-  };
-
   const filteredProducts = products.filter(p => 
     p.productName.toLowerCase().includes(search.toLowerCase()) ||
     p.sku.toLowerCase().includes(search.toLowerCase())
@@ -146,7 +121,6 @@ const InventoryScreen = () => {
             <ProductCard 
               item={item} 
               onEdit={handleEdit}
-              onDelete={handleDelete}
             />
           )}
           keyExtractor={item => item.productId.toString()}
