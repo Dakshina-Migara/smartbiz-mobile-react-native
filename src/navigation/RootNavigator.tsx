@@ -9,7 +9,7 @@ export type RootStackParamList = {
   Login: undefined;
   Dashboard: undefined;
   Inventory: undefined;
-  Sales: undefined;
+  Sales: { openForm?: boolean } | undefined;
   Invoice: undefined;
 };
 
