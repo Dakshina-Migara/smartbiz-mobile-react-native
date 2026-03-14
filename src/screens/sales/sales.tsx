@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, ActivityIndicator, Alert, RefreshControl } from 'react-native';
+import { useRoute, RouteProp } from '@react-navigation/native';
+import { RootStackParamList } from '../../navigation/RootNavigator';
 import BottomNavbar from '../../component/Dashboard/BottomNavbar';
 import { useSales, Sale } from '../../context/SalesContext';
 import GlobalAIChatButton from '../../component/Dashboard/GlobalAIChatButton';
@@ -36,11 +38,18 @@ const SaleItem = ({ item, onDelete }: { item: Sale, onDelete: (id: string) => vo
 );
 
 const SalesScreen = () => {
+  const route = useRoute<RouteProp<RootStackParamList, 'Sales'>>();
   const { sales, totalSales, totalRevenue, refreshData, deleteSale, loading } = useSales();
   const { user } = useAuth();
-  const [showForm, setShowForm] = useState(false);
+  const [showForm, setShowForm] = useState(route.params?.openForm || false);
   const [products, setProducts] = useState<InventoryData[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(false);
+
+  useEffect(() => {
+    if (route.params?.openForm) {
+      setShowForm(true);
+    }
+  }, [route.params?.openForm]);
 
   useEffect(() => {
     fetchProducts();
