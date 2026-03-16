@@ -1,11 +1,13 @@
-import React from 'react';
-import { View, Text, StyleSheet, SafeAreaView, FlatList, TouchableOpacity } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, SafeAreaView, FlatList, TouchableOpacity, Alert, RefreshControl } from 'react-native';
 import BottomNavbar from '../../component/Dashboard/BottomNavbar';
 import { useInvoices, Invoice } from '../../context/InvoiceContext';
 import MaterialCommunityIcons from '@react-native-vector-icons/material-design-icons';
+import InvoiceViewModal from '../../component/Invoice/InvoiceViewModal';
+import { useAuth } from '../../context/AuthContext';
 
-const InvoiceItem = ({ item, onDelete }: { item: Invoice, onDelete: (id: string) => void }) => (
-  <View style={styles.invoiceCard}>
+const InvoiceItem = ({ item, onView }: { item: Invoice, onView: (item: Invoice) => void }) => (
+  <TouchableOpacity style={styles.invoiceCard} onPress={() => onView(item)}>
     <View style={styles.invoiceInfo}>
       <Text style={styles.invoiceNumber}>{item.invoiceNumber}</Text>
       <Text style={styles.customerName}>{item.customer}</Text>
@@ -16,81 +18,74 @@ const InvoiceItem = ({ item, onDelete }: { item: Invoice, onDelete: (id: string)
       <View style={styles.actionRow}>
         <View style={[
           styles.statusBadge, 
-          item.status === 'Pending' && styles.pendingBadge,
-          item.status === 'Overdue' && styles.overdueBadge
+          styles.paidBadge
         ]}>
           <Text style={[
             styles.statusText,
-            item.status === 'Pending' && styles.pendingText,
-            item.status === 'Overdue' && styles.overdueText
+            styles.paidText
           ]}>
-            {item.status}
+            PAID
           </Text>
         </View>
-        <TouchableOpacity 
-          onPress={() => onDelete(item.id)}
-          style={styles.deleteIcon}
-        >
-          <MaterialCommunityIcons name="delete-outline" size={20} color="#EF4444" />
-        </TouchableOpacity>
+        <View style={styles.viewIcon}>
+          <MaterialCommunityIcons name="chevron-right" size={24} color="#9CA3AF" />
+        </View>
       </View>
     </View>
-  </View>
+  </TouchableOpacity>
 );
 
 import GlobalAIChatButton from '../../component/Dashboard/GlobalAIChatButton';
-import { Alert } from 'react-native';
 
 const InvoiceScreen = () => {
-  const { invoices, loading, deleteInvoice } = useInvoices();
+  const { invoices, loading, refreshInvoices } = useInvoices();
+  const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
+  const [isModalVisible, setIsModalVisible] = useState(false);
 
-  const handleDeleteInvoice = (id: string) => {
-    Alert.alert(
-      'Delete Invoice',
-      'Are you sure you want to remove this record?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Delete', 
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await deleteInvoice(id);
-            } catch (error) {
-              Alert.alert('Error', 'Failed to delete invoice');
-            }
-          }
-        },
-      ]
-    );
+  const handleViewInvoice = (invoice: Invoice) => {
+    setSelectedInvoice(invoice);
+    setIsModalVisible(true);
   };
+
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
-        <Text style={styles.title}>Invoices</Text>
+        <Text style={styles.title}>invoices</Text>
         <Text style={styles.subtitle}>Manage your billing and payments</Text>
 
-        <TouchableOpacity style={styles.createButton}>
-          <MaterialCommunityIcons name="plus" size={24} color="#FFFFFF" />
-          <Text style={styles.createButtonText}>Create New Invoice</Text>
-        </TouchableOpacity>
+
 
         {invoices.length === 0 ? (
           <View style={styles.emptyContainer}>
-            <MaterialCommunityIcons name="file-document-outline" size={64} color="#D1D5DB" />
+            <MaterialCommunityIcons name="receipt" size={64} color="#D1D5DB" />
             <Text style={styles.emptyText}>No invoices generated yet</Text>
+            <TouchableOpacity style={styles.refreshButton} onPress={refreshInvoices}>
+              <Text style={styles.refreshButtonText}>Refresh</Text>
+            </TouchableOpacity>
           </View>
         ) : (
           <FlatList
             data={invoices}
-            renderItem={({ item }) => <InvoiceItem item={item} onDelete={handleDeleteInvoice} />}
+            renderItem={({ item }) => <InvoiceItem item={item} onView={handleViewInvoice} />}
             keyExtractor={item => item.id}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.listContent}
+            refreshControl={
+              <RefreshControl refreshing={loading} onRefresh={refreshInvoices} />
+            }
           />
         )}
       </View>
+
+      {selectedInvoice && (
+        <InvoiceViewModal
+          visible={isModalVisible}
+          onClose={() => setIsModalVisible(false)}
+          saleId={selectedInvoice.saleId}
+          invoiceNumber={selectedInvoice.invoiceNumber}
+        />
+      )}
 
       <GlobalAIChatButton onPress={() => console.log('AI Chat pressed from Invoice')} />
 
@@ -121,27 +116,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     marginBottom: 24,
   },
-  createButton: {
-    flexDirection: 'row',
-    backgroundColor: '#000000',
-    borderRadius: 16,
-    paddingVertical: 18,
-    paddingHorizontal: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 4,
-  },
-  createButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '800',
-    marginLeft: 12,
-  },
+
   listContent: {
     paddingBottom: 100,
   },
@@ -218,6 +193,12 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#10B981',
   },
+  paidBadge: {
+    backgroundColor: '#ECFDF5',
+  },
+  paidText: {
+    color: '#10B981',
+  },
   pendingBadge: {
     backgroundColor: '#FFFBEB',
   },
@@ -229,6 +210,21 @@ const styles = StyleSheet.create({
   },
   overdueText: {
     color: '#EF4444',
+  },
+  viewIcon: {
+    marginLeft: 8,
+  },
+  refreshButton: {
+    marginTop: 16,
+    backgroundColor: '#000',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 12,
+  },
+  refreshButtonText: {
+    color: '#FFF',
+    fontSize: 14,
+    fontWeight: '700',
   },
 });
 
