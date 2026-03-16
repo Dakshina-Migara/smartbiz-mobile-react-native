@@ -34,8 +34,8 @@ export const InvoiceProvider = ({ children }: { children: ReactNode }) => {
       const data = await mobileService.getInvoices(user.businessId);
       if (Array.isArray(data)) {
         const mappedInvoices: Invoice[] = data.map((inv: any) => ({
-          id: inv.invoiceId?.toString() || Math.random().toString(),
-          invoiceNumber: inv.invoiceNumber || `INV-${inv.invoiceId}`,
+          id: inv.invoiceId ? `inv-${inv.invoiceId}` : `sale-${inv.saleId || Math.random()}`,
+          invoiceNumber: inv.invoiceNumber || `INV-${inv.invoiceId || inv.saleId}`,
           customer: inv.customerName || 'Walk-in Customer',
           date: inv.issuedDate ? new Date(inv.issuedDate).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }) : 'N/A',
           amount: `$${(inv.totalAmount || 0).toFixed(2)}`,
