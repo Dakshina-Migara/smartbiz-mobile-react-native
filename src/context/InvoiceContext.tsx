@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { useAuth } from './AuthContext';
+import { mobileService } from '../services/api';
 
 export interface Invoice {
   id: string;
@@ -8,6 +9,7 @@ export interface Invoice {
   date: string;
   amount: string;
   status: 'Paid' | 'Pending' | 'Overdue';
+  saleId: string;
 }
 
 interface InvoiceContextType {
@@ -21,20 +23,41 @@ interface InvoiceContextType {
 const InvoiceContext = createContext<InvoiceContextType | undefined>(undefined);
 
 export const InvoiceProvider = ({ children }: { children: ReactNode }) => {
-  const { user } = useAuth();
+  const { user, token } = useAuth();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // Mock initial data or fetch from backend if available
+  const fetchInvoices = async () => {
+    if (!user?.businessId || !token) return;
+    setLoading(true);
+    try {
+      const data = await mobileService.getInvoices(user.businessId);
+      if (Array.isArray(data)) {
+        const mappedInvoices: Invoice[] = data.map((inv: any) => ({
+          id: inv.invoiceId?.toString() || Math.random().toString(),
+          invoiceNumber: inv.invoiceNumber || `INV-${inv.invoiceId}`,
+          customer: inv.customerName || 'Walk-in Customer',
+          date: inv.issuedDate ? new Date(inv.issuedDate).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }) : 'N/A',
+          amount: `$${(inv.totalAmount || 0).toFixed(2)}`,
+          status: (inv.status || 'Pending') as 'Paid' | 'Pending' | 'Overdue',
+          saleId: inv.saleId?.toString() || '',
+        }));
+        setInvoices(mappedInvoices);
+      }
+    } catch (error) {
+      console.error('Failed to fetch invoices:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const mockInvoices: Invoice[] = [
-      { id: '1', invoiceNumber: 'INV-2024-001', customer: 'Acme Corp', date: 'Mar 12, 2024', status: 'Paid', amount: '$1,250.00' },
-      { id: '2', invoiceNumber: 'INV-2024-002', customer: 'Global Tech', date: 'Mar 10, 2024', status: 'Pending', amount: '$840.00' },
-    ];
-    setInvoices(mockInvoices);
-  }, []);
+    fetchInvoices();
+  }, [user?.businessId, token]);
 
   const addInvoice = (data: Omit<Invoice, 'id' | 'invoiceNumber' | 'date'>) => {
+    // This might be handled by recordSale on the backend, 
+    // but in case we need local addition:
     const newInvoice: Invoice = {
       ...data,
       id: Math.random().toString(36).substr(2, 9),
@@ -47,8 +70,6 @@ export const InvoiceProvider = ({ children }: { children: ReactNode }) => {
   const deleteInvoice = async (invoiceId: string) => {
     setLoading(true);
     try {
-      // In a real app, this would call mobileService.deleteInvoice(user.businessId, invoiceId)
-      // For now, we update local state
       setInvoices(prev => prev.filter(inv => inv.id !== invoiceId));
       await new Promise(resolve => setTimeout(() => resolve(null), 500));
     } finally {
@@ -57,14 +78,7 @@ export const InvoiceProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const refreshInvoices = async () => {
-    // In a real app, this would fetch from /api/v1/mobile/${businessId}/invoices
-    setLoading(true);
-    try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(() => resolve(null), 800));
-    } finally {
-      setLoading(false);
-    }
+    await fetchInvoices();
   };
 
   return (

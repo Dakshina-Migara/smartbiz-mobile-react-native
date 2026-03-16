@@ -127,6 +127,16 @@ export const mobileService = {
     }
   },
 
+  getSaleDetails: async (businessId: number, saleId: string) => {
+    try {
+      const response = await api.get(`/mobile/${businessId}/sales/${saleId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching sale details:', error);
+      throw error;
+    }
+  },
+
   addProduct: async (businessId: number, data: ProductRequest) => {
     try {
       const response = await api.post(`/mobile/${businessId}/inventory`, data);
@@ -163,6 +173,16 @@ export const mobileService = {
       return response.data;
     } catch (error) {
       console.error('Error deleting sale:', error);
+      throw error;
+    }
+  },
+
+  getInvoices: async (businessId: number) => {
+    try {
+      const response = await api.get(`/mobile/${businessId}/invoices`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching invoices:', error);
       throw error;
     }
   },

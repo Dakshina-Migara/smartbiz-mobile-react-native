@@ -10,7 +10,7 @@ import MaterialCommunityIcons from '@react-native-vector-icons/material-design-i
 import { mobileService, InventoryData } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 
-const SaleItem = ({ item, onDelete }: { item: Sale, onDelete: (id: string) => void }) => (
+const SaleItem = ({ item }: { item: Sale }) => (
   <View style={styles.saleCard}>
     <View style={styles.saleHeader}>
       <View style={styles.customerInfo}>
@@ -25,12 +25,6 @@ const SaleItem = ({ item, onDelete }: { item: Sale, onDelete: (id: string) => vo
               {item.status}
             </Text>
           </View>
-          <TouchableOpacity 
-            onPress={() => onDelete(item.id)}
-            style={styles.deleteIcon}
-          >
-            <MaterialCommunityIcons name="delete-outline" size={20} color="#EF4444" />
-          </TouchableOpacity>
         </View>
       </View>
     </View>
@@ -73,26 +67,7 @@ const SalesScreen = () => {
     refreshData();
   };
 
-  const handleDeleteSale = (id: string) => {
-    Alert.alert(
-      'Delete Sale',
-      'Are you sure you want to remove this record? This action cannot be undone.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Delete', 
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await deleteSale(id);
-            } catch (error) {
-              Alert.alert('Error', 'Failed to delete sale');
-            }
-          }
-        },
-      ]
-    );
-  };
+
 
   return (
     <SafeAreaView style={styles.container}>
@@ -161,7 +136,6 @@ const SalesScreen = () => {
               <SaleItem 
                 key={sale.id} 
                 item={sale} 
-                onDelete={handleDeleteSale} 
               />
             ))
           )}
