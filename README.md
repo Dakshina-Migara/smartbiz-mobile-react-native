@@ -1,27 +1,26 @@
-# Smartbiz Mobile 🚀
-
-**Smartbiz Mobile** is a powerful, cross-platform business management application built with React Native. It serves as a mobile companion to the Smartbiz platform, empowering business owners to manage their operations, track sales, and monitor inventory on the go.
+**Smartbiz Mobile** is a premium, high-performance business management solution built with React Native. Designed for efficiency and scale, it empowers business owners to manage operations, monitor inventory, and track financial health in real-time from anywhere in the world.
 
 ---
 
 ## ✨ Key Features
 
-- **📊 Dynamic Dashboard**: Get a real-time overview of your business with key performance indicators (KPIs) like total revenue, sales count, and low-stock alerts.
-- **📦 Inventory Management**: Seamlessly add, update, and track products. Monitor stock levels and organize items by category.
-- **💰 Sales Tracking**: Record new sales transactions, manage customer information, and view detailed sales history.
-- **🧾 Invoice Management**: Generate and manage business invoices directly from your mobile device.
-- **🔒 Secure Authentication**: Robust login system with token-based authentication to keep your business data safe.
+- **📊 Intelligent Dashboard**: Real-time KPI tracking including total revenue, sales volume, and dynamic trend charts.
+- **📦 Advanced Inventory**: Full CRUD operations for products, SKU management, and proactive low-stock alerts.
+- **💰 Sales Engine**: Quick-entry sales recording, customer management, and comprehensive transaction history.
+- **🧾 Smart Invoicing**: Professional invoice generation and "Invoice Ageing" reports for better cash flow visibility.
+- **🤖 AI Assistant**: Global AI Chat integration across all screens to help you navigate data and gain business insights.
+- **🔒 Enterprise Security**: Secure token-based authentication (JWT) with persistent session management.
 
 ---
 
 ## 🛠️ Tech Stack
 
-- **Framework**: [React Native](https://reactnative.dev/) (v0.84+)
-- **UI Library**: [React Native Paper](https://callstack.github.io/react-native-paper/)
-- **Navigation**: [React Navigation](https://reactnavigation.org/)
-- **HTTP Client**: [Axios](https://axios-http.com/)
+- **Core**: [React Native](https://reactnative.dev/) (v0.84+) & [React](https://react.dev/) (v19)
+- **Styling & UI**: [React Native Paper](https://callstack.github.io/react-native-paper/) (Material Design 3)
+- **State Management**: React Context API
+- **Navigation**: [React Navigation 7](https://reactnavigation.org/)
+- **Networking**: [Axios](https://axios-http.com/)
 - **Language**: [TypeScript](https://www.typescriptlang.org/)
-- **Icons**: Material Design Icons
 
 ---
 
@@ -29,70 +28,61 @@
 
 ### Prerequisites
 
-- [Node.js](https://nodejs.org/) (>= 22.11.0)
-- [React Native Environment Setup](https://reactnative.dev/docs/set-up-your-environment)
-- Android Studio (for Android) or Xcode (for iOS)
+- **Node.js**: `>= 22.11.0`
+- **Package Manager**: npm
+- **Environment**: [React Native CLI Setup](https://reactnative.dev/docs/set-up-your-environment) (Android Studio / Xcode)
 
 ### Installation
 
-1. **Clone the repository**:
-   ```sh
-   git clone https://github.com/Dakshina-Migara/smartbiz-mobile-react-native.git
-   cd smartbiz-mobile-react-native
-   ```
+1.  **Clone & Enter**
+    ```bash
+    git clone https://github.com/Dakshina-Migara/smartbiz-mobile-react-native.git
+    cd smartbiz-mobile-react-native
+    ```
 
-2. **Install dependencies**:
-   ```sh
-   npm install
-   ```
+2.  **Dependencies**
+    ```bash
+    npm install
+    ```
 
-3. **Install iOS dependencies** (macOS only):
-   ```sh
-   cd ios && pod install && cd ..
-   ```
+3.  **iOS Cleanup (macOS only)**
+    ```bash
+    cd ios && pod install && cd ..
+    ```
 
-### Running the App
+### Execution
 
-1. **Start Metro Bundler**:
-   ```sh
-   npm start
-   ```
-
-2. **Launch on Android**:
-   ```sh
-   npm run android
-   ```
-
-3. **Launch on iOS**:
-   ```sh
-   npm run ios
-   ```
+| Command | Action |
+| :--- | :--- |
+| `npm start` | Start the Metro Bundler |
+| `npm run android` | Launch on Android Emulator/Device |
+| `npm run ios` | Launch on iOS Simulator (macOS) |
 
 ---
 
-## 📂 Project Structure
+## 📂 Project Architecture
 
 ```text
 src/
-├── component/    # Reusable UI components
-├── context/      # React Context for state management (Auth, Sales)
-├── navigation/   # Navigation configuration (RootNavigator)
-├── screens/      # Main application screens (Dashboard, Sales, Inventory, etc.)
-└── services/     # API services and business logic
+├── component/    # Atomic UI components and shared layouts
+├── context/      # Global state (Auth, Sales, UI state)
+├── navigation/   # Stack and Tab navigation configurations
+├── screens/      # Feature-specific screens (Dashboard, Sales, etc.)
+└── services/     # API abstraction layer using Axios
 ```
 
 ---
 
-## 🔧 Configuration
+## 🔧 API Configuration
 
-The application connects to the Smartbiz API. You can configure the base URL in `src/services/api.ts`.
+The app is pre-configured to handle both local development and emulator networking. Adjust the base URL in `src/services/api.ts` if needed:
 
 - **Android Emulator**: `http://10.0.2.2:8080/api/v1`
-- **iOS Simulator / Real Device**: `http://localhost:8080/api/v1`
+- **iOS / Physical Device**: `http://<YOUR_LOCAL_IP>:8080/api/v1`
 
 ---
 
-## 📄 License
+## 📄 License & Privacy
 
-This project is private and intended for use by Smartbiz administrators and business owners.
+This is a **private** repository and is the intellectual property of Smartbiz. Unauthorized distribution or copying is strictly prohibited.
 
