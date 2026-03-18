@@ -7,11 +7,12 @@ export interface Sale {
   amount: string;
   status: 'Completed' | 'Pending';
   time: string;
+  paymentMethod: string;
 }
 
 interface SalesContextType {
   sales: Sale[];
-  addSale: (saleData: MobileSaleRequest) => Promise<void>;
+  addSale: (saleData: MobileSaleRequest) => Promise<any>;
   deleteSale: (saleId: string) => Promise<void>;
   totalSales: number;
   totalRevenue: number;
@@ -72,6 +73,7 @@ export const SalesProvider = ({ children }: { children: ReactNode }) => {
             amount: `$${(s.totalAmount || 0).toFixed(2)}`,
             status: (s.status === 'completed' ? 'Completed' : 'Pending') as 'Completed' | 'Pending',
             time: s.saleDate ? new Date(s.saleDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A',
+            paymentMethod: s.paymentMethod || 'Cash',
           };
         });
         setSales(mappedSales);
@@ -97,9 +99,10 @@ export const SalesProvider = ({ children }: { children: ReactNode }) => {
   const addSale = async (saleRequest: MobileSaleRequest) => {
     if (!user?.businessId) return;
     try {
-      await mobileService.recordSale(user.businessId, saleRequest);
+      const response = await mobileService.recordSale(user.businessId, saleRequest);
       // Refresh after adding
       await fetchData();
+      return response;
     } catch (error) {
       console.error('Failed to record sale:', error);
       throw error;
