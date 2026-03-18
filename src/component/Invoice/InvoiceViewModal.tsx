@@ -128,7 +128,7 @@ const InvoiceViewModal = ({ visible, onClose, saleId, invoiceNumber }: InvoiceVi
             </View>
 
             <View style={styles.footer}>
-              <Text style={styles.footerText}>Thank you for your business!</Text>
+              <Text style={styles.footerText}>Thank you for comming!</Text>
               <Text style={styles.companyName}>SmartBiz - Empowering Your Business</Text>
             </View>
           </ScrollView>

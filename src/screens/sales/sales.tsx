@@ -15,7 +15,16 @@ const SaleItem = ({ item }: { item: Sale }) => (
     <View style={styles.saleHeader}>
       <View style={styles.customerInfo}>
         <Text style={styles.customerName}>{item.customer}</Text>
-        <Text style={styles.saleTime}>{item.time}</Text>
+        <View style={styles.saleMeta}>
+          <Text style={styles.saleTime}>{item.time}</Text>
+          <View style={styles.bullet} />
+          <MaterialCommunityIcons 
+            name={item.paymentMethod.toLowerCase() === 'cash' ? "cash" : "credit-card-outline"} 
+            size={14} 
+            color="#6B7280" 
+          />
+          <Text style={styles.paymentMethodText}>{item.paymentMethod}</Text>
+        </View>
       </View>
       <View style={styles.amountInfo}>
         <Text style={styles.saleAmount}>{item.amount}</Text>
@@ -283,6 +292,25 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#6B7280',
     fontWeight: '500',
+  },
+  saleMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  bullet: {
+    width: 3,
+    height: 3,
+    borderRadius: 1.5,
+    backgroundColor: '#D1D5DB',
+    marginHorizontal: 8,
+  },
+  paymentMethodText: {
+    fontSize: 12,
+    color: '#6B7280',
+    fontWeight: '600',
+    marginLeft: 4,
+    textTransform: 'capitalize',
   },
   amountInfo: {
     alignItems: 'flex-end',

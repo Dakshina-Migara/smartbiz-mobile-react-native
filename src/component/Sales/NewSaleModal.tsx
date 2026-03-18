@@ -23,10 +23,12 @@ const NewSaleModal: React.FC<NewSaleModalProps> = ({ visible, onClose }) => {
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerData | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<InventoryData | null>(null);
   const [quantity, setQuantity] = useState('1');
+  const [paymentMethod, setPaymentMethod] = useState<'cash' | 'card'>('cash');
 
   // UI State for "Dropboxes" (Expandable Lists)
   const [isCustomerExpanded, setIsCustomerExpanded] = useState(false);
   const [isProductExpanded, setIsProductExpanded] = useState(false);
+  const [isPaymentExpanded, setIsPaymentExpanded] = useState(false);
 
   useEffect(() => {
     if (visible) {
@@ -67,7 +69,7 @@ const NewSaleModal: React.FC<NewSaleModalProps> = ({ visible, onClose }) => {
             price: selectedProduct.price
           }
         ],
-        paymentMethod: 'cash',
+        paymentMethod: paymentMethod,
         status: 'completed',
       });
 
@@ -82,8 +84,10 @@ const NewSaleModal: React.FC<NewSaleModalProps> = ({ visible, onClose }) => {
     setSelectedCustomer(null);
     setSelectedProduct(null);
     setQuantity('1');
+    setPaymentMethod('cash');
     setIsCustomerExpanded(false);
     setIsProductExpanded(false);
+    setIsPaymentExpanded(false);
   };
 
   return (
@@ -185,6 +189,49 @@ const NewSaleModal: React.FC<NewSaleModalProps> = ({ visible, onClose }) => {
                           </TouchableOpacity>
                         ))}
                       </ScrollView>
+                    </View>
+                  )}
+                </View>
+
+                {/* Payment Method Dropbox */}
+                <View style={[styles.inputContainer, { marginTop: 10 }]}>
+                  <Text style={styles.label}>Payment Method</Text>
+                  <TouchableOpacity 
+                    style={styles.dropboxHeader} 
+                    onPress={() => {
+                      setIsPaymentExpanded(!isPaymentExpanded);
+                      setIsCustomerExpanded(false);
+                      setIsProductExpanded(false);
+                    }}
+                  >
+                    <Text style={styles.dropboxValue}>
+                      {paymentMethod === 'cash' ? 'Cash' : 'Card'}
+                    </Text>
+                    <Text style={styles.chevron}>{isPaymentExpanded ? '▲' : '▼'}</Text>
+                  </TouchableOpacity>
+                  
+                  {isPaymentExpanded && (
+                    <View style={styles.dropboxContent}>
+                      <TouchableOpacity 
+                        style={styles.dropItem}
+                        onPress={() => {
+                          setPaymentMethod('cash');
+                          setIsPaymentExpanded(false);
+                        }}
+                      >
+                        <Text style={styles.itemTitle}>Cash</Text>
+                        <Divider />
+                      </TouchableOpacity>
+                      <TouchableOpacity 
+                        style={styles.dropItem}
+                        onPress={() => {
+                          setPaymentMethod('card');
+                          setIsPaymentExpanded(false);
+                        }}
+                      >
+                        <Text style={styles.itemTitle}>Card</Text>
+                        <Divider />
+                      </TouchableOpacity>
                     </View>
                   )}
                 </View>

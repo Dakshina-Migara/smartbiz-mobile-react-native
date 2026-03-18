@@ -31,11 +31,13 @@ const NewSaleForm: React.FC<NewSaleFormProps> = ({ onCancel, onSuccess, products
   // Form State
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerData | null>(null);
   const [items, setItems] = useState<SaleItem[]>([]);
+  const [paymentMethod, setPaymentMethod] = useState<'cash' | 'card'>('cash');
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   // UI State
   const [showProductPicker, setShowProductPicker] = useState(false);
   const [showCustomerPicker, setShowCustomerPicker] = useState(false);
+  const [showPaymentPicker, setShowPaymentPicker] = useState(false);
 
   useEffect(() => {
     fetchCustomers();
@@ -112,7 +114,7 @@ const NewSaleForm: React.FC<NewSaleFormProps> = ({ onCancel, onSuccess, products
 
     setIsSubmitting(true);
     try {
-      await addSale({
+      const response = await addSale({
         customerName: selectedCustomer.name,
         customerEmail: selectedCustomer.email || undefined,
         customerPhone: selectedCustomer.phone || undefined,
@@ -121,15 +123,18 @@ const NewSaleForm: React.FC<NewSaleFormProps> = ({ onCancel, onSuccess, products
           qty: item.qty,
           price: item.price
         })),
-        paymentMethod: 'cash', // Default payload
+        paymentMethod: paymentMethod,
         status: 'completed',
       });
       
+      const newSaleId = response?.saleId || response?.id || Math.random().toString();
+
       // Generate the invoice after sale success
       addInvoice({
         customer: selectedCustomer.name,
         amount: `$${totalAmount.toFixed(2)}`,
         status: 'Paid',
+        saleId: newSaleId.toString(),
       });
       
       Alert.alert('Success', 'Sale completed and Invoice generated successfully');
@@ -246,10 +251,33 @@ const NewSaleForm: React.FC<NewSaleFormProps> = ({ onCancel, onSuccess, products
       </View>
 
       {items.length > 0 && (
-        <View style={styles.totalRow}>
-          <Text style={styles.totalLabel}>Total Amount:</Text>
-          <Text style={styles.totalValue}>${totalAmount.toFixed(2)}</Text>
-        </View>
+        <>
+          <View style={styles.totalRow}>
+            <Text style={styles.totalLabel}>Total Amount:</Text>
+            <Text style={styles.totalValue}>${totalAmount.toFixed(2)}</Text>
+          </View>
+
+          <View style={styles.card}>
+            <Text style={styles.sectionTitle}>Payment Method</Text>
+            <TouchableOpacity 
+              style={styles.pickerTrigger} 
+              onPress={() => setShowPaymentPicker(true)}
+            >
+              <View style={styles.pickerLabelRow}>
+                <MaterialCommunityIcons 
+                  name={paymentMethod === 'cash' ? "cash" : "credit-card-outline"} 
+                  size={20} 
+                  color="#111827" 
+                  style={{ marginRight: 10 }}
+                />
+                <Text style={styles.pickerValue}>
+                  {paymentMethod === 'cash' ? 'Cash' : 'Card'}
+                </Text>
+              </View>
+              <MaterialCommunityIcons name="chevron-down" size={20} color="#6B7280" />
+            </TouchableOpacity>
+          </View>
+        </>
       )}
 
       <TouchableOpacity 
@@ -262,6 +290,46 @@ const NewSaleForm: React.FC<NewSaleFormProps> = ({ onCancel, onSuccess, products
           {isSubmitting ? 'Processing...' : 'Complete Sale & Generate Invoice'}
         </Text>
       </TouchableOpacity>
+
+      {/* Payment Method Picker */}
+      {showPaymentPicker && (
+        <View style={styles.pickerOverlay}>
+          <View style={styles.pickerContainer}>
+            <View style={styles.pickerHeader}>
+              <Text style={styles.pickerTitle}>Payment Method</Text>
+              <TouchableOpacity onPress={() => setShowPaymentPicker(false)}>
+                <Text style={styles.closePicker}>Close</Text>
+              </TouchableOpacity>
+            </View>
+            <TouchableOpacity 
+              style={styles.productItem}
+              onPress={() => {
+                setPaymentMethod('cash');
+                setShowPaymentPicker(false);
+              }}
+            >
+              <View style={styles.pickerLabelRow}>
+                <MaterialCommunityIcons name="cash" size={20} color="#6B7280" style={{ marginRight: 12 }} />
+                <Text style={styles.productName}>Cash</Text>
+              </View>
+              {paymentMethod === 'cash' && <MaterialCommunityIcons name="check" size={20} color="#10B981" />}
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={styles.productItem}
+              onPress={() => {
+                setPaymentMethod('card');
+                setShowPaymentPicker(false);
+              }}
+            >
+              <View style={styles.pickerLabelRow}>
+                <MaterialCommunityIcons name="credit-card-outline" size={20} color="#6B7280" style={{ marginRight: 12 }} />
+                <Text style={styles.productName}>Card</Text>
+              </View>
+              {paymentMethod === 'card' && <MaterialCommunityIcons name="check" size={20} color="#10B981" />}
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
 
       {/* Customer Picker Modal Replacement */}
       {showCustomerPicker && (
@@ -621,6 +689,10 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#6B7280',
     marginTop: 2,
+  },
+  pickerLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
 });
 
