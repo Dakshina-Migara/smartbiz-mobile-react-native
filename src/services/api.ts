@@ -200,4 +200,46 @@ export const customerService = {
   },
 };
 
+export const aiService = {
+  queryData: async (businessId: number, prompt: string) => {
+    try {
+      const response = await api.post(`/business/${businessId}/ai/query`, { prompt });
+      return response.data;
+    } catch (error) {
+      console.error('Error querying AI:', error);
+      throw error;
+    }
+  },
+
+  generateEmail: async (businessId: number, prompt: string) => {
+    try {
+      const response = await api.post(`/business/${businessId}/ai/generate-email`, { prompt });
+      return response.data;
+    } catch (error) {
+      console.error('Error generating email:', error);
+      throw error;
+    }
+  },
+
+  generatePost: async (businessId: number, prompt: string) => {
+    try {
+      const response = await api.post(`/business/${businessId}/ai/generate-post`, { prompt });
+      return response.data;
+    } catch (error) {
+      console.error('Error generating post:', error);
+      throw error;
+    }
+  },
+
+  explainInvoice: async (businessId: number, invoiceId: number) => {
+    try {
+      const response = await api.post(`/business/${businessId}/ai/explain-invoice`, { invoiceId });
+      return response.data;
+    } catch (error) {
+      console.error('Error explaining invoice:', error);
+      throw error;
+    }
+  },
+};
+
 export default api;

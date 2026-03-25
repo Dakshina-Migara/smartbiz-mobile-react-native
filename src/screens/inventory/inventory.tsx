@@ -15,12 +15,14 @@ import BottomNavbar from '../../component/Dashboard/BottomNavbar';
 import Icon from '@react-native-vector-icons/material-design-icons';
 import { mobileService, InventoryData, ProductRequest } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
+import { useAI } from '../../context/AIContext';
 import ProductCard from '../../component/Inventory/ProductCard';
 import InventoryModal from '../../component/Inventory/InventoryModal';
 import GlobalAIChatButton from '../../component/Dashboard/GlobalAIChatButton';
 
 const InventoryScreen = () => {
   const { user } = useAuth();
+  const { openAIChat } = useAI();
   const [search, setSearch] = useState('');
   const [products, setProducts] = useState<InventoryData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -145,7 +147,7 @@ const InventoryScreen = () => {
         loading={actionLoading}
       />
 
-      <GlobalAIChatButton onPress={() => console.log('AI Chat pressed from Inventory')} />
+      <GlobalAIChatButton onPress={openAIChat} />
 
       <BottomNavbar activeTab="Inventory" />
     </SafeAreaView>
