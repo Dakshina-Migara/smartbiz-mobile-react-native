@@ -12,6 +12,7 @@ import GlobalAIChatButton from '../../component/Dashboard/GlobalAIChatButton';
 import StatCard from '../../component/Dashboard/StatCard';
 import ActionCard from '../../component/Dashboard/ActionCard';
 import BottomNavbar from '../../component/Dashboard/BottomNavbar';
+import { useAI } from '../../context/AIContext';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/RootNavigator';
@@ -20,6 +21,7 @@ import { useSales } from '../../context/SalesContext';
 const DashboardScreen = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { totalSales, totalRevenue, totalProducts, lowStockItems, loading, refreshData } = useSales();
+  const { openAIChat } = useAI();
 
   const handleAIChatPress = () => {
     console.log('AI Chat pressed');
@@ -70,8 +72,7 @@ const DashboardScreen = () => {
         <View style={{ height: 100 }} />
       </ScrollView>
 
-      <GlobalAIChatButton onPress={handleAIChatPress} />
-
+      <GlobalAIChatButton onPress={openAIChat} />
       <BottomNavbar activeTab="Dashboard" />
     </SafeAreaView>
   );

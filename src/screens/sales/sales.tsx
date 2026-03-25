@@ -9,6 +9,7 @@ import NewSaleForm from '../../component/Sales/NewSaleForm';
 import MaterialCommunityIcons from '@react-native-vector-icons/material-design-icons';
 import { mobileService, InventoryData } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
+import { useAI } from '../../context/AIContext';
 
 const SaleItem = ({ item }: { item: Sale }) => (
   <View style={styles.saleCard}>
@@ -44,6 +45,7 @@ const SalesScreen = () => {
   const route = useRoute<RouteProp<RootStackParamList, 'Sales'>>();
   const { sales, totalSales, totalRevenue, refreshData, deleteSale, loading } = useSales();
   const { user } = useAuth();
+  const { openAIChat } = useAI();
   const [showForm, setShowForm] = useState(route.params?.openForm || false);
   const [products, setProducts] = useState<InventoryData[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(false);
@@ -153,7 +155,7 @@ const SalesScreen = () => {
         </View>
       </ScrollView>
 
-      <GlobalAIChatButton onPress={() => console.log('AI Chat pressed from Sales')} />
+      <GlobalAIChatButton onPress={openAIChat} />
 
       <BottomNavbar activeTab="Sales" />
     </SafeAreaView>

@@ -5,6 +5,7 @@ import { useInvoices, Invoice } from '../../context/InvoiceContext';
 import MaterialCommunityIcons from '@react-native-vector-icons/material-design-icons';
 import InvoiceViewModal from '../../component/Invoice/InvoiceViewModal';
 import { useAuth } from '../../context/AuthContext';
+import { useAI } from '../../context/AIContext';
 
 const InvoiceItem = ({ item, onView }: { item: Invoice, onView: (item: Invoice) => void }) => (
   <TouchableOpacity style={styles.invoiceCard} onPress={() => onView(item)}>
@@ -39,6 +40,7 @@ import GlobalAIChatButton from '../../component/Dashboard/GlobalAIChatButton';
 
 const InvoiceScreen = () => {
   const { invoices, loading, refreshInvoices } = useInvoices();
+  const { openAIChat } = useAI();
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
 
@@ -87,7 +89,7 @@ const InvoiceScreen = () => {
         />
       )}
 
-      <GlobalAIChatButton onPress={() => console.log('AI Chat pressed from Invoice')} />
+      <GlobalAIChatButton onPress={openAIChat} />
 
       <BottomNavbar activeTab="Invoice" />
     </SafeAreaView>
