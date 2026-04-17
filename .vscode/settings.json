@@ -1,0 +1,30 @@
+{
+  "java.project.exclusionPaths": [
+    "node_modules",
+    "android",
+    "bin",
+    "**/*.jar"
+  ],
+  "java.import.exclusions": [
+    "**/node_modules/**",
+    "**/android/**",
+    "**/bin/**"
+  ],
+  "java.project.resourceExclusionFilters": [
+    "node_modules",
+    "android",
+    "bin"
+  ],
+  "java.configuration.updateBuildConfiguration": "disabled",
+  "java.autobuild.enabled": false,
+  "java.gradle.buildServer.enabled": "off",
+  "files.exclude": {
+    "**/node_modules": true
+  },
+  "files.watcherExclude": {
+    "**/node_modules/**": true,
+    "**/android/**": true
+  },
+  "liveServer.settings.multiRootWorkspaceName": "SmartbizMobile"
+}
+

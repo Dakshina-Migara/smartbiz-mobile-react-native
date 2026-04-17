@@ -84,8 +84,15 @@ export const SalesProvider = ({ children }: { children: ReactNode }) => {
     } catch (error: any) {
       console.error('Failed to fetch data from mobile API:', error);
       if (error.response) {
-        console.error('Error Status:', error.response.status);
-        console.error('Error Data:', error.response.data);
+        console.error('API Error Status:', error.response.status);
+        console.error('API Error Data:', error.response.data);
+        if (error.response.status === 401 || error.response.status === 403) {
+          console.error('AUTHENTICATION ERROR: Token might be invalid or expired.');
+        }
+      } else if (error.request) {
+        console.error('NETWORK ERROR: No response received from server. Check IP/Connectivity.');
+      } else {
+        console.error('REQUEST ERROR:', error.message);
       }
     } finally {
       setLoading(false);
