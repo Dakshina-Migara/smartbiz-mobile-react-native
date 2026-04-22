@@ -66,13 +66,27 @@ export interface MobileSaleRequest {
   status: string;
 }
 
+let authToken: string | null = null;
+
 export const setAuthToken = (token: string | null) => {
+  authToken = token;
   if (token) {
     api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
   } else {
     delete api.defaults.headers.common['Authorization'];
   }
 };
+
+// Add interceptor as a fallback/more robust way
+api.interceptors.request.use(
+  (config) => {
+    if (authToken && !config.headers['Authorization']) {
+      config.headers['Authorization'] = `Bearer ${authToken}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
 
 export const authService = {
   login: async (data: LoginRequest) => {
